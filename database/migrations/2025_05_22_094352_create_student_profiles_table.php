@@ -16,8 +16,9 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('parent_id')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('classroom_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('level');
             $table->enum('previous_status',['11th','qualifying','bacaloria_repeater'])->nullable();
-            $table->decimal('gpa',3,2);
+            $table->decimal('gpa',3,2)->nullable();
             $table->string('enrollment_year')->nullable();
             $table->timestamps();
         });
