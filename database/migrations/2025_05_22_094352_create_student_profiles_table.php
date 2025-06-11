@@ -21,6 +21,7 @@ return new class extends Migration
             $table->decimal('gpa',3,2)->nullable();
             $table->string('enrollment_year')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
