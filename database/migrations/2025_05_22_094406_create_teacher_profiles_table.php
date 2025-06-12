@@ -14,7 +14,12 @@ return new class extends Migration
         Schema::create('teacher_profiles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->enum('department', [
+                'arabic', 'english', 'math', 'physics', 'chemistry',
+                'biology', 'french', 'history', 'geography', 'philosophy', 'religion'
+            ]);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

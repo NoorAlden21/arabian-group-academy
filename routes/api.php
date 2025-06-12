@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +17,8 @@ Route::middleware(['api','auth:sanctum'])->group(function(){
 
 
     //admin routes
+
+    //Students
     Route::prefix('/admin/students')
     ->middleware('role:admin')
     ->controller(StudentController::class)
@@ -28,6 +31,21 @@ Route::middleware(['api','auth:sanctum'])->group(function(){
         Route::delete('/{id}', 'destroy');
         Route::post('/restore/{id}', 'restoreStudent');
         Route::delete('/force-delete/{id}', 'forceDeleteStudent');
+    });
+
+    //Teachers
+    Route::prefix('/admin/teachers')
+    ->middleware('role:admin')
+    ->controller(TeacherController::class)
+    ->group(function () {
+        Route::get('/', 'index');
+        Route::post('/', 'store');
+        Route::get('/search', 'searchTeachers');
+        Route::get('/{id}', 'show');
+        Route::patch('/{id}', 'update');
+        Route::delete('/{id}', 'destroy');
+        Route::post('/restore/{id}', 'restoreTeacher');
+        Route::delete('/force-delete/{id}', 'forceDeleteTeacher');
     });
 
 });

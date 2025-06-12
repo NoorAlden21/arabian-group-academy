@@ -113,8 +113,8 @@ class StudentService
         return $student;
     }
 
-    public function forceDeleteStudent($id)
-    {
+    public function forceDeleteStudent($id){
+        
         $student = User::onlyTrashed()->role('student')->where('id', $id)->firstOrFail();
 
         if ($student->studentProfile) {
@@ -131,8 +131,8 @@ class StudentService
         return true;
     }
 
-    public function searchStudents($filters)
-    {
+    public function searchStudents($filters){
+
         $query = User::role('student')->with('studentProfile');
 
         if (!empty($filters['name'])) {
