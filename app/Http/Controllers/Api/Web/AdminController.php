@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api\Web;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Http\Resources\StudentBasicInfoResource;
@@ -15,5 +16,5 @@ use function PHPUnit\Framework\isNull;
 
 class AdminController extends Controller
 {
-    
+
 }

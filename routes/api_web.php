@@ -1,9 +1,9 @@
 <?php
 
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\StudentController;
-use App\Http\Controllers\TeacherController;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\Api\Web\StudentController;
+use App\Http\Controllers\Api\Web\TeacherController;
+use App\Http\Controllers\Api\Web\UserController;
+
 use Illuminate\Support\Facades\Route;
 
 //public routes

@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api\Web;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\CreateTeacherRequest;
 use App\Http\Requests\UpdateTeacherRequest;
@@ -79,7 +80,7 @@ class TeacherController extends Controller
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to update teacher', 
+                'message' => 'Failed to update teacher',
                 'error' => $e->getMessage()
             ], 500);
         }
