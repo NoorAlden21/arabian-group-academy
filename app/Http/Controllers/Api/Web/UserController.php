@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api\Web;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Models\User;
 use Illuminate\Container\Attributes\Auth;
@@ -14,7 +15,7 @@ class UserController extends Controller
         try{
             $validated = $request->validated();
             $user = User::where('phone_number',$validated['phone_number'])->first();
-    
+
             if(!$user || !Hash::check($validated['password'],$user->password)){
                 return response()->json([
                     'message' => 'Phone number or password is incorrect.'
