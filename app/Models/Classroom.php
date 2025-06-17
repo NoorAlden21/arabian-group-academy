@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Classroom extends Model
 {
+    use HasFactory,SoftDeletes;
     protected $fillable = ['name', 'level', 'year', 'students_count'];
 
     public function students()

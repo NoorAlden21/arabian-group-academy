@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('year');     // e.g. "2024"
             $table->smallInteger('students_count')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

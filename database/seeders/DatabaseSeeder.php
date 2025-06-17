@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Classroom;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -24,6 +25,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             AdminSeeder::class,
             StudentSeeder::class,
+            ClassroomSeeder::class,
         ]);
     }
 }
