@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('student_profiles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('parent_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('parent_id')->nullable()->constrained('parent_profiles')->onDelete('set null');
             $table->foreignId('classroom_id')->nullable()->constrained()->nullOnDelete();
             $table->string('level');
             $table->enum('previous_status',['11th','qualifying','bacaloria_repeater'])->nullable();

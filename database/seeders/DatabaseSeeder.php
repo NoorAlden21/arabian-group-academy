@@ -25,6 +25,10 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             AdminSeeder::class,
             StudentSeeder::class,
+            SubjectSeeder::class,
+            ClassTypeSeeder::class,
+            ClassTypeSubjectSeeder::class,
+            TeacherSeeder::class,
             ClassroomSeeder::class,
         ]);
     }

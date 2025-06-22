@@ -43,4 +43,9 @@ class TeacherProfile extends Model
     public function students(){
         return $this->classrooms->flatMap->students->unique('id');  //eager load $teacherProfile->load('classrooms.students');
     }
+
+    public function teachableSubjects(){
+        return $this->hasMany(TeacherClassTypeSubject::class)
+        ->with(['classTypeSubject.subject','classTypeSubject.classType']);
+    }
 }

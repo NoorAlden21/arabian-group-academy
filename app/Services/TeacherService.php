@@ -25,6 +25,14 @@ class TeacherService
                 'department' => $data['department'],
             ]);
 
+            if($data['class_type_subjects']){
+                foreach($data['class_type_subjects'] as $ctsid){
+                    $teacher->teacherProfile->teachableSubjects()->create([
+                        'class_type_subject_id' => $ctsid
+                    ]);
+                }
+            }
+
             return $teacher;
         });
     }
@@ -37,7 +45,9 @@ class TeacherService
     public function getTeacherById($id)
     {
         return User::role('teacher')
-            ->with('teacherProfile')
+            ->with(['teacherProfile',
+            'teacherProfile.teachableSubjects.classTypeSubject.subject',
+            'teacherProfile.teachableSubjects.classTypeSubject.classType'])
             ->find($id);
     }
 

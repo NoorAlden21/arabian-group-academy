@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('classrooms', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('class_type_id')->nullable()->constrained('class_types')->onDelete('set null');
             $table->string('name');     // e.g. "9A"
-            $table->string('level');    // e.g. "9"
             $table->string('year');     // e.g. "2024"
             $table->smallInteger('students_count')->nullable();
             $table->timestamps();

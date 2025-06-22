@@ -19,6 +19,9 @@ class StudentSeeder extends Seeder
             'phone_number' => '0990000001',
             'password' => Hash::make('password'),
         ]);
+        $parent->parentProfile()->create([
+            'occupation' => 'Lawyer',
+        ]);
         $parent->assignRole('parent');
 
          $student = User::create([
@@ -31,7 +34,7 @@ class StudentSeeder extends Seeder
         $student->assignRole('student');
 
         $student->studentProfile()->create([
-            'parent_id' => $parent->id,
+            'parent_id' => $parent->parentProfile->id,
             'level' => '9',
             'enrollment_year' => '2024',
             'classroom_id' => null, 

@@ -19,6 +19,9 @@ class StudentService
                 'phone_number' => $data['parent_phone_number'],
                 'password' => Hash::make($data['parent_password']),
             ]);
+            $parent->parentProfile()->create([
+                'occupation' => $data['parent_occupation']
+            ]);
             $parent->assignRole('parent');
 
             $student = User::create([
@@ -31,7 +34,7 @@ class StudentService
             $student->assignRole('student');
 
             $student->studentProfile()->create([
-                'parent_id' => $parent->id,
+                'parent_id' => $parent->parentProfile->id,
                 'level' => $data['level'],
                 'enrollment_year' => $data['enrollment_year'],
                 'classroom_id' => $data['classroom_id'],
@@ -73,9 +76,9 @@ class StudentService
                 ]);
 
                 if ($student->studentProfile->parent) {
-                    $student->studentProfile->parent->update([
-                        'name' => $data['parent_name'] ?? $student->studentProfile->parent->name,
-                        'phone_number' => $data['parent_phone_number'] ?? $student->studentProfile->parent->phone_number,
+                    $student->studentProfile->parent->user->update([
+                        'name' => $data['parent_name'] ?? $student->studentProfile->parent->user->name,
+                        'phone_number' => $data['parent_phone_number'] ?? $student->studentProfile->parent->user->phone_number,
                     ]);
                 }
             }

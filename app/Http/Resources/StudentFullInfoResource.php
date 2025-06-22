@@ -17,7 +17,7 @@ class StudentFullInfoResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'phoneNumber' => $this->phone_number,
+            'phone_number' => $this->phone_number,
             'gender' => $this->gender,
             'birthDate' => $this->birth_date,
             //'created_at' => $this->created_at,
@@ -31,7 +31,7 @@ class StudentFullInfoResource extends JsonResource
             'parent' => [
                 'id' => optional($this->studentProfile->parent)->id,
                 'name' => optional($this->studentProfile->parent)->name,
-                'phoneNumber' => optional($this->studentProfile->parent)->phone_number,
+                'phone_number' => optional($this->studentProfile->parent)->phone_number,
             ],
         ];
     }

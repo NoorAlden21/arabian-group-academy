@@ -27,7 +27,10 @@ class CreateTeacherRequest extends FormRequest
             'password' => 'required|string|min:6',
             'gender' => 'required|in:male,female',
             'birth_date' => 'required|date',
-            'department' => 'required|in:arabic,english,math,physics,chemistry,biology,french,history,geography,philosophy,religion',
+            'department' => 'required|in:arabic,english,math,physics,chemistry,biology,french,history,geography,philosophy,religion',            
+            
+            'class_type_subjects' => 'required|array|min:1',
+            'class_type_subjects.*' => 'integer|exists:class_type_subjects,id',
         ];
     }
 }

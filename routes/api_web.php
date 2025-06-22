@@ -4,7 +4,7 @@ use App\Http\Controllers\Api\Web\ClassroomController;
 use App\Http\Controllers\Api\Web\StudentController;
 use App\Http\Controllers\Api\Web\TeacherController;
 use App\Http\Controllers\Api\Web\UserController;
-
+use App\Http\Controllers\ParentController;
 use Illuminate\Support\Facades\Route;
 
 //public routes
@@ -32,8 +32,16 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
             Route::delete('/{id}', 'destroy');
             Route::post('/restore/{id}', 'restoreStudent');
             Route::delete('/force-delete/{id}', 'forceDeleteStudent');
-        });
+    });
 
+    Route::prefix('/admin/parents')
+    ->middleware('role:admin')
+    ->controller(ParentController::class)
+    ->group(function(){
+        Route::get('/{id}','show');
+    });
+
+    //teachers
     Route::prefix('/admin/teachers')
         ->middleware('role:admin')
         ->controller(TeacherController::class)
@@ -46,10 +54,10 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
             Route::delete('/{id}', 'destroy');
             Route::post('/restore/{id}', 'restoreTeacher');
             Route::delete('/force-delete/{id}', 'forceDeleteTeacher');
-        });
+    });
 
 
-
+    //classrooms
     Route::prefix('/admin/classrooms')
         ->middleware('role:admin')
         ->controller(ClassroomController::class)
@@ -63,5 +71,5 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
             Route::delete('/{classroom}', 'destroy');
             Route::post('/restore/{classroom}', 'restore');
             Route::delete('/force-delete/{classroom}', 'forceDelete');
-        });
+    });
 });

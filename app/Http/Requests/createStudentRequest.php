@@ -25,7 +25,7 @@ class CreateStudentRequest extends FormRequest
             'parent_name' => ['required','string'],
             'parent_phone_number' => ['required','string','size:10','unique:users,phone_number'],
             'parent_password' => ['required'],
-            
+            'parent_occupation' =>['nullable','string'],
             
             'name' => ['required','string'],
             'phone_number' => ['required','string','size:10','unique:users,phone_number'],

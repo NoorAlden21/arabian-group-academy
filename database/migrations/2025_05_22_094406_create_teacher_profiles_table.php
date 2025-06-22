@@ -17,7 +17,7 @@ return new class extends Migration
             $table->enum('department', [
                 'arabic', 'english', 'math', 'physics', 'chemistry',
                 'biology', 'french', 'history', 'geography', 'philosophy', 'religion'
-            ]);
+            ])->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

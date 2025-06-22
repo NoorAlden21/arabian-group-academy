@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Classroom;
+use App\Models\ClassType;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -13,20 +14,17 @@ class ClassroomSeeder extends Seeder
      */
     public function run(): void
     {
-        Classroom::firstOrCreate(
-            ['name' => 'Grade 9A', 'level' => '9', 'year' => '2024'],
-            ['students_count' => 25]
-        );
+        $types = ClassType::all()->keyBy('name');
 
-        Classroom::firstOrCreate(
-            ['name' => 'Grade 10B', 'level' => '10', 'year' => '2024'],
-            ['students_count' => 28]
-        );
+        $classrooms = [
+            ['name' => '9A', 'year' => '2024', 'class_type_id' => $types['9th Grade']->id],
+            ['name' => '9B', 'year' => '2024', 'class_type_id' => $types['9th Grade']->id],
+            ['name' => 'BacSci-A', 'year' => '2024', 'class_type_id' => $types['Baccalaureate Scientific']->id],
+            ['name' => 'BacLit-A', 'year' => '2024', 'class_type_id' => $types['Baccalaureate Literature']->id],
+        ];
 
-        Classroom::firstOrCreate(
-            ['name' => 'Grade 11C', 'level' => '11', 'year' => '2025'],
-            ['students_count' => 22]
-        );
-
+        foreach ($classrooms as $c) {
+            Classroom::create($c);
+        }
     }
 }
