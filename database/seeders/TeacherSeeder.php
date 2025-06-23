@@ -7,14 +7,17 @@ use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class TeacherSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
-    public function run(): void
+      public function run(): void
     {
+
+        Log::channel('teacher_tokens')->info("new logs:");
         $teacher1 = User::create([
             'name' => 'Mohammed Math',
             'phone_number' => '0955111222',
@@ -32,6 +35,8 @@ class TeacherSeeder extends Seeder
                 'class_type_subject_id' => $mathSubject->id
             ]);
         }
+        $token1 = $teacher1->createToken('teacher')->plainTextToken;
+        Log::channel('teacher_tokens')->info("Teacher ID: {$teacher1->id} Token: {$token1}");
 
         $teacher2 = User::create([
             'name' => 'Aisha English',
@@ -50,6 +55,8 @@ class TeacherSeeder extends Seeder
                 'class_type_subject_id' => $englishSubject->id
             ]);
         }
+        $token2 = $teacher2->createToken('teacher')->plainTextToken;
+        Log::channel('teacher_tokens')->info("Teacher ID: {$teacher2->id} Token: {$token2}");
 
         $teacher3 = User::create([
             'name' => 'Sami Physics',
@@ -68,5 +75,7 @@ class TeacherSeeder extends Seeder
                 'class_type_subject_id' => $physicsSubject->id
             ]);
         }
+        $token3 = $teacher3->createToken('teacher')->plainTextToken;
+        Log::channel('teacher_tokens')->info("Teacher ID: {$teacher3->id} Token: {$token3}");
     }
 }

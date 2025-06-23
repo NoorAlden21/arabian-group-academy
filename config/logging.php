@@ -52,6 +52,18 @@ return [
 
     'channels' => [
 
+        'student_tokens' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/tokens/studentsTokens.log'),
+            'level' => 'info',
+        ],
+
+        'teacher_tokens' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/tokens/teacherTokens.log'),
+            'level' => 'info',
+        ],
+              
         'stack' => [
             'driver' => 'stack',
             'channels' => explode(',', env('LOG_STACK', 'single')),

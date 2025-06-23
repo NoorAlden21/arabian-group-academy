@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class StudentSeeder extends Seeder
 {
@@ -39,5 +40,9 @@ class StudentSeeder extends Seeder
             'enrollment_year' => '2024',
             'classroom_id' => null,
         ]);
+
+        $token = $student->createToken('student')->plainTextToken;
+        Log::channel('student_tokens')->info("new logs:");
+        Log::channel('student_tokens')->info("Student ID: {$student->id} Token: {$token}");
     }
 }
