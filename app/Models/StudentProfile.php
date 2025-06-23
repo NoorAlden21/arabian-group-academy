@@ -10,21 +10,32 @@ class StudentProfile extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['user_id', 'classroom_id', 'enrollment_year', 'parent_id','level','gpa','previous_status'];
+    protected $fillable = ['user_id', 'classroom_id', 'enrollment_year', 'parent_id', 'level', 'gpa', 'previous_status'];
 
-    public function user(){
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
-    public function parent(){
-        return $this->belongsTo(ParentProfile::class,'parent_id');
+    public function parent()
+    {
+        return $this->belongsTo(ParentProfile::class, 'parent_id');
     }
-
-    public function classroom(){
+   public function parentProfile()
+    {
+        return $this->belongsTo(ParentProfile::class, 'parent_id');
+    }
+    public function classroom()
+    {
         return $this->belongsTo(Classroom::class);
     }
 
-    public function subjects(){
+    public function parentUser()
+    {
+        return $this->belongsTo(User::class, 'parent_id', 'id');
+    }
+    public function subjects()
+    {
         return $this->hasManyThrough(
             Subject::class,
             ClassSubjectTeacher::class,
@@ -35,7 +46,8 @@ class StudentProfile extends Model
         )->distinct();
     }
 
-    public function schedules(){
+    public function schedules()
+    {
         return $this->hasManyThrough(
             Schedule::class,     // 🔹 Final model you want to reach (schedules)
             Classroom::class,    // 🔸 Intermediate model you go through (classrooms)
@@ -46,12 +58,14 @@ class StudentProfile extends Model
         );
     }
 
-    public function tomorrowSchedules(){
+    public function tomorrowSchedules()
+    {
         $day = strtolower(Carbon::tomorrow()->format('l'));
-        return $this->schedules()->where('day',$day)->get();
+        return $this->schedules()->where('day', $day)->get();
     }
-    
-    public function homeworks(){
+
+    public function homeworks()
+    {
         return $this->hasManyThrough(
             Homework::class,
             Classroom::class,

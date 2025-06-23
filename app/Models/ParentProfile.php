@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class ParentProfile extends Model
 {
     use SoftDeletes;
-    protected $fillable = ['user_id','phone_number'];
+    protected $fillable = ['user_id','phone_number','occupation'];
 
     public function user(){
         return $this->belongsTo(User::class);
@@ -17,4 +17,7 @@ class ParentProfile extends Model
     public function children(){
         return $this->hasMany(StudentProfile::class,'parent_id');
     }
+
+
+
 }

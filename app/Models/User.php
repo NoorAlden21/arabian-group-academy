@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
-    use HasApiTokens,HasFactory, Notifiable, HasRoles, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -28,26 +28,53 @@ class User extends Authenticatable
         'password',
     ];
 
-    public function studentProfile(){
+    public function studentProfile()
+    {
         return $this->hasOne(StudentProfile::class);
     }
 
-    public function teacherProfile(){
+    public function teacherProfile()
+    {
         return $this->hasOne(TeacherProfile::class);
     }
 
-    public function parentProfile(){
+    public function parentProfile()
+    {
         return $this->hasOne(ParentProfile::class);
     }
 
-    public function sentNotes(){
-        return $this->hasMany(Note::class,'sender_id');
-    }
-    
-    public function receivedNotes(){
-        return $this->hasMany(Note::class,'receiver_id');
+
+    public function isStudent(): bool
+    {
+        return $this->studentProfile()->exists();
     }
 
+    public function isTeacher(): bool
+    {
+        return $this->teacherProfile()->exists();
+    }
+
+    public function isParent(): bool
+    {
+        return $this->parentProfile()->exists();
+    }
+
+
+
+    public function sentNotes()
+    {
+        return $this->hasMany(Note::class, 'sender_id');
+    }
+
+    public function receivedNotes()
+    {
+        return $this->hasMany(Note::class, 'receiver_id');
+    }
+
+    public function parentChildren()
+    {
+        return $this->hasMany(StudentProfile::class, 'parent_id', 'id');
+    }
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -68,6 +95,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'birth_date' => 'date',
         ];
     }
 }

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class TeacherProfile extends Model
 {
     use SoftDeletes;
-    
+
     protected $fillable = ['user_id', 'department', 'qualification'];
 
     public function user(){
