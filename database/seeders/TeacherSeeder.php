@@ -15,25 +15,57 @@ class TeacherSeeder extends Seeder
      */
     public function run(): void
     {
-        $teacher = User::create([
+        $teacher1 = User::create([
             'name' => 'Mohammed Math',
             'phone_number' => '0955111222',
             'password' => Hash::make('password'),
             'gender' => 'male',
             'birth_date' => '1985-03-10',
         ]);
-
-        $teacher->assignRole('teacher');
-
-        $profile = $teacher->teacherProfile()->create([
+        $teacher1->assignRole('teacher');
+        $profile1 = $teacher1->teacherProfile()->create([
             'department' => 'math',
         ]);
-
-        $mathSubjects = ClassTypeSubject::wherehas('subject',fn($q) => $q->where('name','math'))->get();
-        
-        foreach($mathSubjects as $mathSubject){
-            $profile->teachableSubjects()->create([
+        $mathSubjects = ClassTypeSubject::whereHas('subject', fn($q) => $q->where('name', 'math'))->get();
+        foreach ($mathSubjects as $mathSubject) {
+            $profile1->teachableSubjects()->create([
                 'class_type_subject_id' => $mathSubject->id
+            ]);
+        }
+
+        $teacher2 = User::create([
+            'name' => 'Aisha English',
+            'phone_number' => '0955333444',
+            'password' => Hash::make('password'),
+            'gender' => 'female',
+            'birth_date' => '1990-07-15',
+        ]);
+        $teacher2->assignRole('teacher');
+        $profile2 = $teacher2->teacherProfile()->create([
+            'department' => 'english',
+        ]);
+        $englishSubjects = ClassTypeSubject::whereHas('subject', fn($q) => $q->where('name', 'english'))->get();
+        foreach ($englishSubjects as $englishSubject) {
+            $profile2->teachableSubjects()->create([
+                'class_type_subject_id' => $englishSubject->id
+            ]);
+        }
+
+        $teacher3 = User::create([
+            'name' => 'Sami Physics',
+            'phone_number' => '0955666777',
+            'password' => Hash::make('password'),
+            'gender' => 'male',
+            'birth_date' => '1982-11-20',
+        ]);
+        $teacher3->assignRole('teacher');
+        $profile3 = $teacher3->teacherProfile()->create([
+            'department' => 'physics',
+        ]);
+        $physicsSubjects = ClassTypeSubject::whereHas('subject', fn($q) => $q->where('name', 'physics'))->get();
+        foreach ($physicsSubjects as $physicsSubject) {
+            $profile3->teachableSubjects()->create([
+                'class_type_subject_id' => $physicsSubject->id
             ]);
         }
     }

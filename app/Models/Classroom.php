@@ -44,4 +44,10 @@ class Classroom extends Model
             'id'                             // PK on ClassSubjectTeacher
         );
     }
+
+    public function classType()
+    {
+        return $this->belongsTo(ClassType::class);
+    }
+
 }

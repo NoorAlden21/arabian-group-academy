@@ -14,7 +14,7 @@ class StudentSeeder extends Seeder
      */
     public function run(): void
     {
-         $parent = User::create([
+        $parent = User::create([
             'name' => 'Parent One',
             'phone_number' => '0990000001',
             'password' => Hash::make('password'),
@@ -24,7 +24,7 @@ class StudentSeeder extends Seeder
         ]);
         $parent->assignRole('parent');
 
-         $student = User::create([
+        $student = User::create([
             'name' => 'Student One',
             'phone_number' => '0910000001',
             'password' => Hash::make('password'),
@@ -37,7 +37,7 @@ class StudentSeeder extends Seeder
             'parent_id' => $parent->parentProfile->id,
             'level' => '9',
             'enrollment_year' => '2024',
-            'classroom_id' => null, 
+            'classroom_id' => null,
         ]);
     }
 }
