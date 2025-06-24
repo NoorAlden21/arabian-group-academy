@@ -1,24 +1,23 @@
 <?php
 
+
 namespace Database\Seeders;
 
 use App\Models\ClassSubjectTeacher;
 use App\Models\Schedule;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Carbon\Carbon; // تأكد من استيراد Carbon إذا كنت ستستخدمه لتوليد الأوقات
+use Carbon\Carbon;
 
 class ScheduleSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // جلب كل التعيينات (الفصول-المواد-المعلمين) التي أنشأناها في ClassSubjectTeacherSeeder
-        $classSubjectTeachers = ClassSubjectTeacher::with(['classroom', 'subject', 'teacher.teacherProfile'])->get();
+        $classSubjectTeachers = ClassSubjectTeacher::with([
+            'classroom',
+            'subject',
+            'teacher.user'
+        ])->get();
 
-        // تعريف أوقات الفترات الدراسية الافتراضية
         $periodTimes = [
             1 => ['08:00:00', '09:00:00'],
             2 => ['09:00:00', '10:00:00'],
@@ -28,10 +27,8 @@ class ScheduleSeeder extends Seeder
             6 => ['14:00:00', '15:00:00'],
         ];
 
-        // قائمة الأيام التي يتم فيها التدريس
-        $weekDays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday'];
-
         foreach ($classSubjectTeachers as $cst) {
+
             // يمكننا تخصيص الجداول هنا بناءً على الـ ClassSubjectTeacher
             // مثال:
             // - فصل 9A ومادة الرياضيات مع محمد Math: حصتان (الأحد، الثلاثاء)
@@ -39,10 +36,9 @@ class ScheduleSeeder extends Seeder
             // - فصل 9A ومادة الإنجليزية مع عائشة English: حصتان (الاثنين، الأربعاء)
             // - فصل BacLit-A ومادة الإنجليزية مع عائشة English: حصة واحدة (الأحد)
             // - فصل BacSci-A ومادة الفيزياء مع سامي Physics: حصتان (الثلاثاء، الخميس)
-
             $classroomName = $cst->classroom->name;
             $subjectName = $cst->subject->name;
-            $teacherName = $cst->teacher->name;
+            $teacherName = $cst->teacher->user->name;
 
             switch (true) {
                 case ($classroomName == '9A' && $subjectName == 'math' && $teacherName == 'Mohammed Math'):
@@ -115,8 +111,6 @@ class ScheduleSeeder extends Seeder
                         'end_time' => $periodTimes[1][1],
                     ]);
                     break;
-
-
             }
         }
     }

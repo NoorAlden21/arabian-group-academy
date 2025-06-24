@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Api\Web;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AssignTeachersRequest;
 use App\Http\Requests\CreateClassroomRequest;
 use App\Http\Requests\UpdateClassroomRequest;
 use App\Http\Resources\ClassroomBasicResource;
 use App\Http\Resources\ClassroomFullResource;
+use App\Models\Classroom;
+use App\Models\ClassSubjectTeacher;
 use App\Services\ClassroomService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -199,4 +202,52 @@ class ClassroomController extends Controller
         }
     }
 
+    public function fetchTeachers($id){
+        try{
+            $data = $this->classroomService->getEligibleTeachers($id);
+             return response()->json([
+                'message' => 'Eligible teachers fetched successfully.',
+                'data' => $data
+            ], 200);
+        } 
+        catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Classroom not found.',
+                'error' => $e->getMessage()
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch teachers.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function assignTeachers(AssignTeachersRequest $request,$id){
+        try {
+        $classroom = Classroom::findOrFail($id);
+
+        ClassSubjectTeacher::where('classroom_id', $classroom->id)->delete();
+
+        foreach ($request->assignments as $assignment) {
+            ClassSubjectTeacher::create([
+                'classroom_id' => $classroom->id,
+                'subject_id' => $assignment['subject_id'],
+                'teacher_profile_id' => $assignment['teacher_profile_id'],
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Teachers assigned successfully.'
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Failed to assign teachers.',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+    }
+    
 }
+

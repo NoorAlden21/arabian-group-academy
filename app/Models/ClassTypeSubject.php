@@ -15,4 +15,12 @@ class ClassTypeSubject extends Model
         return $this->belongsTo(Subject::class);
     }
     
+    public function teachers(){
+        return $this->belongsToMany(
+            TeacherProfile::class, 
+            'teacher_class_type_subjects', 
+            'class_type_subject_id', 
+            'teacher_profile_id'
+        );
+    }
 }

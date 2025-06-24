@@ -90,4 +90,33 @@ class ClassroomService
     {
         return Classroom::onlyTrashed()->get();
     }
+
+   public function getEligibleTeachers(int $id){
+
+    $classroom = Classroom::with('classType.classTypeSubjects.subject')->findOrFail($id);
+    $classType = $classroom->classType;
+
+    $subjects = [];
+
+    foreach ($classType->classTypeSubjects as $cts) {
+        $teachers = $cts->teachers()->with('user')->get();
+
+        $subjects[] = [
+            'subject_id' => $cts->subject->id,
+            'subject_name' => $cts->subject->name,
+            'teachers' => $teachers->map(function ($teacher) {
+                return [
+                    'id' => $teacher->id,
+                    'name' => $teacher->user->name
+                ];
+                })->toArray()
+            ];
+        }
+
+        return [
+            'classroom_name' => $classroom->name,
+            'classroom_type' => $classType->name,
+            'subjects' => $subjects
+        ];
+    }
 }

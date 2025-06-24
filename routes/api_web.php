@@ -71,5 +71,7 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
             Route::delete('/{classroom}', 'destroy');
             Route::post('/restore/{classroom}', 'restore');
             Route::delete('/force-delete/{classroom}', 'forceDelete');
+            Route::get('/{id}/assign-teachers','fetchTeachers');
+            Route::post('{id}/assign-teachers','assignTeachers');
     });
 });
