@@ -22,7 +22,7 @@ class ClassSubjectTeacher extends Model
 
      public function teacher()
     {
-        return $this->belongsTo(TeacherProfile::class, 'teacher_profile_id');
+        return $this->belongsTo(User::class, 'teacher_id');
     }
 
     public function schedules()

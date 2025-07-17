@@ -14,6 +14,7 @@ class ClassSubjectTeacherSeeder extends Seeder
     {
         $classrooms = Classroom::all()->keyBy('name');
         $subjects = Subject::all()->keyBy('name');
+        // يجب أن نحمل teacherProfile هنا لأننا نستخدمه للتحقق من teachableSubjects
         $teachers = User::role('teacher')->with('teacherProfile')->get()->keyBy('name');
 
         $assignments = [
@@ -32,6 +33,7 @@ class ClassSubjectTeacherSeeder extends Seeder
             if ($classroom && $subject && $teacherUser && $teacherUser->teacherProfile) {
                 $teacherProfile = $teacherUser->teacherProfile;
 
+                // هذا الجزء من التحقق صحيح وسنبقيه
                 $classTypeSubjectExists = $classroom->classType
                     ->classTypeSubjects()
                     ->where('subject_id', $subject->id)
@@ -49,13 +51,14 @@ class ClassSubjectTeacherSeeder extends Seeder
                     ClassSubjectTeacher::firstOrCreate([
                         'classroom_id' => $classroom->id,
                         'subject_id' => $subject->id,
-                        'teacher_profile_id' => $teacherProfile->id,
+                        // هنا هو التعديل الأهم: استخدم $teacherUser->id وليس $teacherProfile->id
+                        'teacher_id' => $teacherUser->id,
                     ]);
                 } else {
                     $this->command->warn("Skipping assignment for Classroom: {$assignment['classroom']}, Subject: {$assignment['subject']}, Teacher: {$assignment['teacher']} - ClassTypeSubject or TeacherCanTeach mismatch.");
                 }
             } else {
-                $this->command->warn("Skipping assignment for Classroom: {$assignment['classroom']}, Subject: {$assignment['subject']}, Teacher: {$assignment['teacher']} - Missing required entity.");
+                $this->command->warn("Skipping assignment for Classroom: {$assignment['classroom']}, Subject: {$assignment['subject']}, Teacher: {$assignment['teacher']} - Missing required entity or teacherProfile.");
             }
         }
     }

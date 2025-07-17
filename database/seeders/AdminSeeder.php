@@ -18,8 +18,8 @@ class AdminSeeder extends Seeder
             'name' => 'Admin One',
             'phone_number' => '0911111111',
             'password' => Hash::make('password'),
-            'gender' => 'male', 
-            'birth_date' => '1990-01-01', 
+            'gender' => 'male',
+            'birth_date' => '1990-01-01',
         ]);
 
         $admin->assignRole('admin');

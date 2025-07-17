@@ -129,6 +129,7 @@ class StudentController extends Controller
         }
     }
 
+
     public function forceDeleteStudent($id)
     {
         try {

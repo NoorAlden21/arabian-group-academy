@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Api\Mobile;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Mobile\UserResource;
+use App\Models\User;
 use App\Services\UserProfileService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Spatie\Permission\Models\Permission;
 
 class ProfileController extends Controller
 {
@@ -17,6 +20,7 @@ class ProfileController extends Controller
     {
         $this->userProfileService = $userProfileService;
     }
+
 
     /**
      * Display the authenticated user's profile.

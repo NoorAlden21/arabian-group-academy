@@ -2,6 +2,12 @@
 
 return [
 
+
+    'defaults' => [
+    'guard' => 'sanctum', // <--- يجب أن تكون هكذا لكي تتوافق Spatie مع Sanctum Guard
+    // ...
+],
+
     'models' => [
 
         /*

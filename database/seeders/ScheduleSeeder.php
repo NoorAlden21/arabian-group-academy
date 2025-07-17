@@ -15,7 +15,7 @@ class ScheduleSeeder extends Seeder
         $classSubjectTeachers = ClassSubjectTeacher::with([
             'classroom',
             'subject',
-            'teacher.user'
+            'teacher'
         ])->get();
 
         $periodTimes = [
@@ -38,7 +38,7 @@ class ScheduleSeeder extends Seeder
             // - فصل BacSci-A ومادة الفيزياء مع سامي Physics: حصتان (الثلاثاء، الخميس)
             $classroomName = $cst->classroom->name;
             $subjectName = $cst->subject->name;
-            $teacherName = $cst->teacher->user->name;
+            $teacherName = $cst->teacher->name;
 
             switch (true) {
                 case ($classroomName == '9A' && $subjectName == 'math' && $teacherName == 'Mohammed Math'):
