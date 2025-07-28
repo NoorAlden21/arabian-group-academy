@@ -52,7 +52,7 @@ class ClassSubjectTeacherSeeder extends Seeder
                         'classroom_id' => $classroom->id,
                         'subject_id' => $subject->id,
                         // هنا هو التعديل الأهم: استخدم $teacherUser->id وليس $teacherProfile->id
-                        'teacher_id' => $teacherUser->id,
+                        'teacher_profile_id' => $teacherUser->teacherProfile->id,
                     ]);
                 } else {
                     $this->command->warn("Skipping assignment for Classroom: {$assignment['classroom']}, Subject: {$assignment['subject']}, Teacher: {$assignment['teacher']} - ClassTypeSubject or TeacherCanTeach mismatch.");

@@ -20,9 +20,8 @@ class ClassSubjectTeacher extends Model
         return $this->belongsTo(Subject::class);
     }
 
-     public function teacher()
-    {
-        return $this->belongsTo(User::class, 'teacher_id');
+    public function teacher(){
+        return $this->belongsTo(TeacherProfile::class, 'teacher_profile_id');
     }
 
     public function schedules()

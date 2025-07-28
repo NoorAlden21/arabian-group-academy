@@ -241,13 +241,12 @@ class ClassroomController extends Controller
             'message' => 'Teachers assigned successfully.'
         ], 200);
 
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Failed to assign teachers.',
-            'error' => $e->getMessage(),
-        ], 500);
+        }catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to assign teachers.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
-    }
-    
 }
 
