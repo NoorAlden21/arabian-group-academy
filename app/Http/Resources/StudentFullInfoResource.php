@@ -30,9 +30,10 @@ class StudentFullInfoResource extends JsonResource
 
             'parent' => [
                 'id' => optional($this->studentProfile->parent)->id,
-                'name' => optional($this->studentProfile->parent)->name,
-                'phone_number' => optional($this->studentProfile->parent)->phone_number,
+                'name' => optional($this->studentProfile->parent->user)->name,
+                'phone_number' => optional($this->studentProfile->parent->user)->phone_number,
             ],
+
         ];
     }
 }

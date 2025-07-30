@@ -73,7 +73,7 @@ class User extends Authenticatable
 
     public function classSubjectTeachers()
     {
-        return $this->hasMany(ClassSubjectTeacher::class, 'teacher_id');
+        return $this->hasMany(ClassSubjectTeacher::class, 'teacher_profile_id');
     }
 
     public function parentChildren()

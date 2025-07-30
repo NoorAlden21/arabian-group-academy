@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use App\Http\Resources\ParentFullInfoResource;
+use App\Http\Resources\StudentFullInfoResource;
+use App\Http\Resources\TeacherFullResource;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -15,28 +18,38 @@ class UserProfileService
      */
     public function getAuthenticatedUserProfile(User $user)
     {
-
-        $user->load(['roles']);
+        $user->load('roles');
 
         if ($user->hasRole('student')) {
             $user->load([
                 'studentProfile.classroom.classType',
                 'studentProfile.parent.user',
             ]);
-        } elseif ($user->hasRole('teacher')) {
-            $user->load([
-                'teacherProfile.user', //,
-                'teacherProfile.teachableSubjects.classTypeSubject.classType', //,,
-                'teacherProfile.teachableSubjects.classTypeSubject.subject', //,,
-            ]);
-        } elseif ($user->hasRole('parent')) {
-            $user->load([
-                'parentProfile.children.classroom.classType',
-            ]);
+
+            return new StudentFullInfoResource($user);
         }
 
-        return $user;
+        if ($user->hasRole('teacher')) {
+            $user->load([
+                'teacherProfile.user',
+                'teacherProfile.teachableSubjects.classTypeSubject.classType',
+                'teacherProfile.teachableSubjects.classTypeSubject.subject',
+            ]);
+
+            return new TeacherFullResource($user);
+        }
+
+        if ($user->hasRole('parent')) {
+            $user->load([
+                'parentProfile.user',
+                'parentProfile.children.user',
+                'parentProfile.children.classroom.classType',
+            ]);
+
+
+            return new ParentFullInfoResource($user->parentProfile);
+        }
+
+        throw new \Exception('No valid role assigned to this user.');
     }
-
-
 }

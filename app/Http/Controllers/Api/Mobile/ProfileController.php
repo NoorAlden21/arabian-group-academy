@@ -3,13 +3,9 @@
 namespace App\Http\Controllers\Api\Mobile;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Mobile\UserResource;
-use App\Models\User;
 use App\Services\UserProfileService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Spatie\Permission\Models\Permission;
 
 class ProfileController extends Controller
 {
@@ -28,19 +24,26 @@ class ProfileController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show(Request $request)
-    {
-        $user = $request->user(); // Get the authenticated user via Sanctum
+ public function show(Request $request)
+{
+    $user = $request->user();
 
-        try {
-            $profile = $this->userProfileService->getAuthenticatedUserProfile($user);
-            return UserResource::make($profile)->response()->setStatusCode(200);
-        } catch (\Exception $e) {
-            Log::error("Failed to retrieve authenticated user profile: " . $e->getMessage());
-            return response()->json([
-                'message' => 'Could not retrieve user profile.',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+    try {
+        $profileResource = $this->userProfileService->getAuthenticatedUserProfile($user);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $profileResource,
+        ]);
+    } catch (\Exception $e) {
+        Log::error("Failed to retrieve authenticated user profile: " . $e->getMessage());
+
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Could not retrieve user profile.',
+            'error' => $e->getMessage(),
+        ], 500);
     }
+}
+
 }

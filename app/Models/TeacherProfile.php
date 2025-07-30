@@ -58,6 +58,6 @@ class TeacherProfile extends Model
 
     public function classSubjectTeachers()
     {
-        return $this->hasMany(ClassSubjectTeacher::class, 'teacher_id', 'user_id');
+        return $this->hasMany(ClassSubjectTeacher::class, 'teacher_profile_id', 'id');
     }
 }

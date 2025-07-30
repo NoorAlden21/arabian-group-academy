@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\Mobile\TeacherProfileResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -20,7 +21,7 @@ class ClassSubjectTeacherResource extends JsonResource
 
             'classroom' => ClassroomBasicResource::make($this->whenLoaded('classroom')),
             'subject' => SubjectBasicResource::make($this->whenLoaded('subject')),
-            'teacher' => TeacherBasicResource::make($this->whenLoaded('teacher')),
+            'teacher_profile' => TeacherProfileResource::make($this->whenLoaded('teacher')),
         ];
     }
 }

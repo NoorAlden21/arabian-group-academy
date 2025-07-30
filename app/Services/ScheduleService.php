@@ -22,7 +22,7 @@ class ScheduleService
             $user->load([
                 'studentProfile.classroom.classSubjectTeachers.schedules.classSubjectTeacher.classroom',
                 'studentProfile.classroom.classSubjectTeachers.schedules.classSubjectTeacher.subject',
-                'studentProfile.classroom.classSubjectTeachers.schedules.classSubjectTeacher.teacher' // <--- هنا نطلب User Model فقط للمعلم
+                'studentProfile.classroom.classSubjectTeachers.schedules.classSubjectTeacher.teacher.user' // <--- هنا نطلب User Model فقط للمعلم
             ]);
             if ($studentProfile = $user->studentProfile) {
                 if ($classroom = $studentProfile->classroom) {
@@ -35,7 +35,7 @@ class ScheduleService
             $user->load([
                 'classSubjectTeachers.schedules.classSubjectTeacher.classroom',
                 'classSubjectTeachers.schedules.classSubjectTeacher.subject',
-                'classSubjectTeachers.schedules.classSubjectTeacher.teacher' // <--- هنا نطلب User Model فقط للمعلم
+                'classSubjectTeachers.schedules.classSubjectTeacher.teacher.user'
             ]);
             foreach ($user->classSubjectTeachers as $classSubjectTeacher) {
                 $schedules = $schedules->merge($classSubjectTeacher->schedules);
@@ -44,7 +44,7 @@ class ScheduleService
             $user->load([
                 'parentProfile.students.classroom.classSubjectTeachers.schedules.classSubjectTeacher.classroom',
                 'parentProfile.students.classroom.classSubjectTeachers.schedules.classSubjectTeacher.subject',
-                'parentProfile.students.classroom.classSubjectTeachers.schedules.classSubjectTeacher.teacher' // <--- هنا نطلب User Model فقط للمعلم
+                'parentProfile.students.classroom.classSubjectTeachers.schedules.classSubjectTeacher.teacher.user' // <--- هنا نطلب User Model فقط للمعلم
             ]);
             if ($parentProfile = $user->parentProfile) {
                 foreach ($parentProfile->students as $student) {

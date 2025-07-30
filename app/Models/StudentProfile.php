@@ -14,14 +14,14 @@ class StudentProfile extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function parent()
     {
         return $this->belongsTo(ParentProfile::class, 'parent_id');
     }
-   public function parentProfile()
+    public function parentProfile()
     {
         return $this->belongsTo(ParentProfile::class, 'parent_id');
     }
