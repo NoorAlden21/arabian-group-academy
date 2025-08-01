@@ -1,116 +1,47 @@
 <?php
 
-
 namespace Database\Seeders;
 
 use App\Models\ClassSubjectTeacher;
 use App\Models\Schedule;
 use Illuminate\Database\Seeder;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class ScheduleSeeder extends Seeder
 {
-    public function run(): void
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
     {
-        $classSubjectTeachers = ClassSubjectTeacher::with([
-            'classroom',
-            'subject',
-            'teacher'
-        ])->get();
 
-        $periodTimes = [
-            1 => ['08:00:00', '09:00:00'],
-            2 => ['09:00:00', '10:00:00'],
-            3 => ['10:00:00', '11:00:00'],
-            4 => ['11:00:00', '12:00:00'],
-            5 => ['13:00:00', '14:00:00'],
-            6 => ['14:00:00', '15:00:00'],
+        $daysOfWeek = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+        $periods = [
+            1 => ['start_time' => '08:00:00', 'end_time' => '09:00:00'],
+            2 => ['start_time' => '09:00:00', 'end_time' => '10:00:00'],
+            3 => ['start_time' => '10:00:00', 'end_time' => '11:00:00'],
+            4 => ['start_time' => '11:00:00', 'end_time' => '12:00:00'],
+            5 => ['start_time' => '12:00:00', 'end_time' => '13:00:00'],
         ];
 
+        $classSubjectTeachers = ClassSubjectTeacher::all();
+
         foreach ($classSubjectTeachers as $cst) {
+            $numberOfClasses = rand(2, 5);
+            $randomPeriods = array_rand($periods, $numberOfClasses);
 
-            // يمكننا تخصيص الجداول هنا بناءً على الـ ClassSubjectTeacher
-            // مثال:
-            // - فصل 9A ومادة الرياضيات مع محمد Math: حصتان (الأحد، الثلاثاء)
-            // - فصل BacSci-A ومادة الرياضيات مع محمد Math: حصة واحدة (الاثنين)
-            // - فصل 9A ومادة الإنجليزية مع عائشة English: حصتان (الاثنين، الأربعاء)
-            // - فصل BacLit-A ومادة الإنجليزية مع عائشة English: حصة واحدة (الأحد)
-            // - فصل BacSci-A ومادة الفيزياء مع سامي Physics: حصتان (الثلاثاء، الخميس)
-            $classroomName = $cst->classroom->name;
-            $subjectName = $cst->subject->name;
-            $teacherName = $cst->teacher->name;
+            $day = $daysOfWeek[array_rand($daysOfWeek)];
 
-            switch (true) {
-                case ($classroomName == '9A' && $subjectName == 'math' && $teacherName == 'Mohammed Math'):
-                    Schedule::firstOrCreate([
-                        'class_subject_teacher_id' => $cst->id,
-                        'day' => 'sunday',
-                        'period' => 1,
-                        'start_time' => $periodTimes[1][0],
-                        'end_time' => $periodTimes[1][1],
-                    ]);
-                    Schedule::firstOrCreate([
-                        'class_subject_teacher_id' => $cst->id,
-                        'day' => 'tuesday',
-                        'period' => 3,
-                        'start_time' => $periodTimes[3][0],
-                        'end_time' => $periodTimes[3][1],
-                    ]);
-                    break;
-
-                case ($classroomName == 'BacSci-A' && $subjectName == 'math' && $teacherName == 'Mohammed Math'):
-                    Schedule::firstOrCreate([
-                        'class_subject_teacher_id' => $cst->id,
-                        'day' => 'monday',
-                        'period' => 2,
-                        'start_time' => $periodTimes[2][0],
-                        'end_time' => $periodTimes[2][1],
-                    ]);
-                    break;
-
-                case ($classroomName == '9A' && $subjectName == 'english' && $teacherName == 'Aisha English'):
-                    Schedule::firstOrCreate([
-                        'class_subject_teacher_id' => $cst->id,
-                        'day' => 'monday',
-                        'period' => 1,
-                        'start_time' => $periodTimes[1][0],
-                        'end_time' => $periodTimes[1][1],
-                    ]);
-                    Schedule::firstOrCreate([
-                        'class_subject_teacher_id' => $cst->id,
-                        'day' => 'wednesday',
-                        'period' => 4,
-                        'start_time' => $periodTimes[4][0],
-                        'end_time' => $periodTimes[4][1],
-                    ]);
-                    break;
-
-                case ($classroomName == 'BacLit-A' && $subjectName == 'english' && $teacherName == 'Aisha English'):
-                    Schedule::firstOrCreate([
-                        'class_subject_teacher_id' => $cst->id,
-                        'day' => 'sunday',
-                        'period' => 5,
-                        'start_time' => $periodTimes[5][0],
-                        'end_time' => $periodTimes[5][1],
-                    ]);
-                    break;
-
-                case ($classroomName == 'BacSci-A' && $subjectName == 'physics' && $teacherName == 'Sami Physics'):
-                    Schedule::firstOrCreate([
-                        'class_subject_teacher_id' => $cst->id,
-                        'day' => 'tuesday',
-                        'period' => 4,
-                        'start_time' => $periodTimes[4][0],
-                        'end_time' => $periodTimes[4][1],
-                    ]);
-                    Schedule::firstOrCreate([
-                        'class_subject_teacher_id' => $cst->id,
-                        'day' => 'thursday',
-                        'period' => 1,
-                        'start_time' => $periodTimes[1][0],
-                        'end_time' => $periodTimes[1][1],
-                    ]);
-                    break;
+            foreach ($randomPeriods as $periodNumber) {
+                Schedule::create([
+                    'class_subject_teacher_id' => $cst->id,
+                    'day' => $day,
+                    'period' => $periodNumber,
+                    'start_time' => $periods[$periodNumber]['start_time'],
+                    'end_time' => $periods[$periodNumber]['end_time'],
+                ]);
             }
         }
     }

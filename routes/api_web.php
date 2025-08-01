@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\Api\Mobile\ScheduleController;
 use App\Http\Controllers\Api\Web\ClassroomController;
+use App\Http\Controllers\Api\Web\ClassTypeController;
 use App\Http\Controllers\Api\Web\StudentController;
+use App\Http\Controllers\Api\Web\SubjectController;
 use App\Http\Controllers\Api\Web\TeacherController;
 use App\Http\Controllers\Api\Web\UserController;
 use App\Http\Controllers\ParentController;
@@ -32,14 +35,14 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
             Route::delete('/{id}', 'destroy');
             Route::post('/restore/{id}', 'restoreStudent');
             Route::delete('/force-delete/{id}', 'forceDeleteStudent');
-    });
+        });
 
     Route::prefix('/admin/parents')
-    ->middleware('role:admin')
-    ->controller(ParentController::class)
-    ->group(function(){
-        Route::get('/{id}','show');
-    });
+        ->middleware('role:admin')
+        ->controller(ParentController::class)
+        ->group(function () {
+            Route::get('/{id}', 'show');
+        });
 
     //teachers
     Route::prefix('/admin/teachers')
@@ -54,7 +57,7 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
             Route::delete('/{id}', 'destroy');
             Route::post('/restore/{id}', 'restoreTeacher');
             Route::delete('/force-delete/{id}', 'forceDeleteTeacher');
-    });
+        });
 
 
     //classrooms
@@ -71,7 +74,25 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
             Route::delete('/{classroom}', 'destroy');
             Route::post('/restore/{classroom}', 'restore');
             Route::delete('/force-delete/{classroom}', 'forceDelete');
-            Route::get('/{id}/assign-teachers','fetchTeachers');
-            Route::post('{id}/assign-teachers','assignTeachers');
-    });
+            Route::get('/{id}/assign-teachers', 'fetchTeachers');
+            Route::post('{id}/assign-teachers', 'assignTeachers');
+        });
+
+    Route::middleware(['role:admin'])
+        ->prefix('/admin')
+        ->group(function () {
+            Route::apiResource('class-types', ClassTypeController::class);
+        });
+
+    Route::middleware(['role:admin'])
+        ->prefix('/admin')
+        ->group(function () {
+            Route::apiResource('subjects', SubjectController::class);
+        });
+
+        Route::middleware(['role:admin'])
+        ->prefix('/admin')
+        ->group(function () {
+            Route::apiResource('schedules', ScheduleController::class);
+        });
 });
