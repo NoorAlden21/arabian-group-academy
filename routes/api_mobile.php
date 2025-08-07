@@ -24,36 +24,36 @@ Route::prefix('mobile')->group(function () {
         Route::get('schedules/my/today', [ScheduleController::class, 'show']);
 
         //quizz routes
-        Route::prefix('/quizz')->controller(QuizController::class)->group(function(){
+        Route::prefix('/quizz')->controller(QuizController::class)->group(function () {
             //teacher routes
-            Route::prefix('/teacher')->middleware('role:teacher')->group(function(){
-                Route::get('/','index');
-                Route::post('/','store');
-                Route::get('/{quiz}','show');
-                Route::put('/{quiz}','update')->middleware(['is.owner:quiz,teacher_profile_id']);
+            Route::prefix('/teacher')->middleware('role:teacher')->group(function () {
+                Route::get('/', 'index');
+                Route::post('/', 'store');
+                Route::get('/{quiz}', 'show');
+                Route::put('/{quiz}', 'update')->middleware(['is.owner:quiz,teacher_profile_id']);
                 Route::delete('/{quiz}', 'destroy')->middleware(['is.owner:quiz,teacher_profile_id']);
-                Route::get('/{quiz}/assign','assignableClassrooms')->middleware(['is.owner:quiz,teacher_profile_id']);
-                Route::post('/{quiz}/assign','assign')->middleware(['is.owner:quiz,teacher_profile_id']);
+                Route::get('/{quiz}/assign', 'assignableClassrooms')->middleware(['is.owner:quiz,teacher_profile_id']);
+                Route::post('/{quiz}/assign', 'assign')->middleware(['is.owner:quiz,teacher_profile_id']);
 
                 //student routes
-                Route::prefix('/student')->middleware('role:student')->group(function(){
-                    Route::get('/{quiz}','showForStudent');
+                Route::prefix('/student')->middleware('role:student')->group(function () {
+                    Route::get('/{quiz}', 'showForStudent');
                     Route::get('/', 'studentQuizzes');
                 });
             });
 
-        Route::group(['prefix' => 'teacher', 'middleware' => 'role:teacher'], function () {
+            Route::group(['prefix' => 'teacher', 'middleware' => 'role:teacher'], function () {
 
-            Route::get('/homeworks', [HomeworkController::class, 'index']);
-            Route::post('/homeworks', [HomeworkController::class, 'store']);
-            Route::put('/homeworks/{id}', [HomeworkController::class, 'update']);
-            Route::patch('/homeworks/{id}', [HomeworkController::class, 'update']);
-            Route::delete('/homeworks/{id}', [HomeworkController::class, 'destroy']);
+                Route::get('/homeworks', [HomeworkController::class, 'index']);
+                Route::post('/homeworks', [HomeworkController::class, 'store']);
+                Route::put('/homeworks/{id}', [HomeworkController::class, 'update']);
+                Route::patch('/homeworks/{id}', [HomeworkController::class, 'update']);
+                Route::delete('/homeworks/{id}', [HomeworkController::class, 'destroy']);
 
-            Route::get('/assigned-classes-and-subjects', [TeacherController::class, 'getAssignedClassesAndSubjects']);
+                Route::get('/assigned-classes-and-subjects', [TeacherController::class, 'getAssignedClassesAndSubjects']);
 
-            Route::get('/students/{classroomId}', [StudentController::class, 'getStudentsInClassroom']);
+                Route::get('/students/{classroomId}', [StudentController::class, 'getStudentsInClassroom']);
+            });
         });
     });
 });
-
