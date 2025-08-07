@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Quiz extends Model
 {
     protected $fillable = [
-        'class_subject_teacher_id',
+        'teacher_profile_id',
         'title',
         'description',
         'deadline',
@@ -15,10 +15,13 @@ class Quiz extends Model
         'is_published',
     ];
 
-    public function classSubjectTeacher(){
-        return $this->belongsTo(ClassSubjectTeacher::class);
+    public function teacher(){
+        return $this->belongsTo(TeacherProfile::class, 'teacher_profile_id');
     }
 
+    public function classrooms(){
+        return $this->belongsToMany(Classroom::class, 'quiz_classrooms');
+    }
     public function questions(){
         return $this->hasMany(QuizQuestion::class);
     }

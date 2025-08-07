@@ -49,5 +49,12 @@ class Classroom extends Model
     {
         return $this->belongsTo(ClassType::class);
     }
+    
+    public function quizzes(){
+        return $this->belongsToMany(Quiz::class, 'quiz_classrooms');
+    }
 
+    public function quizClassrooms(){
+        return $this->hasMany(QuizClassroom::class);
+    }
 }

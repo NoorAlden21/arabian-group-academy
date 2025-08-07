@@ -38,9 +38,9 @@ class TeacherProfile extends Model
         return $this->hasManyThrough(
             Classroom::class,
             ClassSubjectTeacher::class,
-            'teacher_id',
+            'teacher_profile_id',
             'id',
-            'user_id',
+            'id',
             'classroom_id'
         )->distinct();
     }

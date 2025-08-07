@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('quizzes', function (Blueprint $table) {
             $table->id();
-             $table->foreignId('class_subject_teacher_id')->constrained()->onDelete('cascade');
+             $table->foreignId('teacher_profile_id')->constrained()->onDelete('cascade');
             $table->string('title');
             $table->text('description')->nullable();
             $table->datetime('started_at');
             $table->datetime('deadline');
-            $table->boolean('is_published')->default(false);
+            $table->boolean('is_published')->default(false); //needs to be changed to time instead
             $table->timestamps();
         });
     }

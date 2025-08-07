@@ -75,4 +75,19 @@ class StudentProfile extends Model
             'id'
         );
     }
+
+    public function quizzes(){
+        return $this->belongsToMany(
+            Quiz::class,
+            'quiz_classrooms',
+            'classroom_id',
+            'quiz_id',
+            'classroom_id',
+            'id'
+        )->withTimestamps()->latest();
+    }
+
+    public function quizSubmissions(){
+        return $this->hasMany(QuizSubmission::class, 'student_profile_id');
+    }
 }
