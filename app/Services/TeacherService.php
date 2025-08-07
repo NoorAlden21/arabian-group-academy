@@ -3,13 +3,15 @@
 namespace App\Services;
 
 use App\Models\User;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 
 class TeacherService
 {
-    public function createTeacher(array $data){
-        
+    public function createTeacher(array $data)
+    {
+
         return DB::transaction(function () use ($data) {
             $teacher = User::create([
                 'name' => $data['name'],
@@ -25,8 +27,8 @@ class TeacherService
                 'department' => $data['department'],
             ]);
 
-            if($data['class_type_subjects']){
-                foreach($data['class_type_subjects'] as $ctsid){
+            if ($data['class_type_subjects']) {
+                foreach ($data['class_type_subjects'] as $ctsid) {
                     $teacher->teacherProfile->teachableSubjects()->create([
                         'class_type_subject_id' => $ctsid
                     ]);
@@ -37,7 +39,8 @@ class TeacherService
         });
     }
 
-    public function getAllTeachers(){
+    public function getAllTeachers()
+    {
 
         return User::role('teacher')->with('teacherProfile')->get();
     }
@@ -45,13 +48,16 @@ class TeacherService
     public function getTeacherById($id)
     {
         return User::role('teacher')
-            ->with(['teacherProfile',
-            'teacherProfile.teachableSubjects.classTypeSubject.subject',
-            'teacherProfile.teachableSubjects.classTypeSubject.classType'])
+            ->with([
+                'teacherProfile',
+                'teacherProfile.teachableSubjects.classTypeSubject.subject',
+                'teacherProfile.teachableSubjects.classTypeSubject.classType'
+            ])
             ->find($id);
     }
 
-    public function updateTeacher($id, array $data){
+    public function updateTeacher($id, array $data)
+    {
 
         return DB::transaction(function () use ($id, $data) {
             $teacher = User::role('teacher')->with('teacherProfile')->findOrFail($id);
@@ -71,7 +77,8 @@ class TeacherService
         });
     }
 
-    public function deleteTeacher($id){
+    public function deleteTeacher($id)
+    {
 
         return DB::transaction(function () use ($id) {
             $teacher = User::role('teacher')->with('teacherProfile')->findOrFail($id);
@@ -81,7 +88,8 @@ class TeacherService
         });
     }
 
-        public function restoreTeacher($id){
+    public function restoreTeacher($id)
+    {
 
         $teacher = User::onlyTrashed()->role('teacher')->where('id', $id)->firstOrFail();
         $teacher->restore();
@@ -93,7 +101,8 @@ class TeacherService
         return $teacher;
     }
 
-    public function forceDeleteTeacher($id){
+    public function forceDeleteTeacher($id)
+    {
 
         $teacher = User::onlyTrashed()->role('teacher')->where('id', $id)->withTrashed()->firstOrFail();
 
@@ -106,7 +115,8 @@ class TeacherService
         return true;
     }
 
-    public function searchTeachers($filters){
+    public function searchTeachers($filters)
+    {
 
         $query = User::role('teacher')->with('teacherProfile');
 
@@ -123,5 +133,19 @@ class TeacherService
         }
 
         return $query->paginate(10);
+    }
+
+    public function getAssignedClassesAndSubjects(User $teacherUser): Collection
+    {
+        if (!$teacherUser->hasRole('teacher') || !$teacherUser->teacherProfile) {
+            return collect();
+        }
+
+        $teacherUser->load([
+            'teacherProfile.classSubjectTeachers.classroom',
+            'teacherProfile.classSubjectTeachers.subject',
+        ]);
+
+        return $teacherUser->teacherProfile->classSubjectTeachers ?? collect();
     }
 }

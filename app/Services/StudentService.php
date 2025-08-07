@@ -4,10 +4,12 @@ namespace App\Services;
 
 use App\Http\Requests\CreateStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
+use App\Models\Classroom;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Collection;
 
 class StudentService
 {
@@ -49,7 +51,7 @@ class StudentService
         return User::role('student')->get();
     }
 
-     public function getStudentById($id)
+    public function getStudentById($id)
     {
         return User::role('student')
             ->with(['studentProfile.classroom', 'studentProfile.parent'])
@@ -116,8 +118,9 @@ class StudentService
         return $student;
     }
 
-    public function forceDeleteStudent($id){
-        
+    public function forceDeleteStudent($id)
+    {
+
         $student = User::onlyTrashed()->role('student')->where('id', $id)->firstOrFail();
 
         if ($student->studentProfile) {
@@ -134,7 +137,8 @@ class StudentService
         return true;
     }
 
-    public function searchStudents($filters){
+    public function searchStudents($filters)
+    {
 
         $query = User::role('student')->with('studentProfile');
 
@@ -155,5 +159,13 @@ class StudentService
         }
 
         return $query->paginate(10);
+    }
+
+    public function getStudentsInClassroom(int $classroomId): Collection
+    {
+        $classroom = Classroom::findOrFail($classroomId);
+        $classroom->load('students.user');
+
+        return $classroom->students ?? collect();
     }
 }

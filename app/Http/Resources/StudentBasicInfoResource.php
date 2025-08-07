@@ -16,10 +16,10 @@ class StudentBasicInfoResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->name,
-            'phone_number' => $this->phone_number,
-            'level' => $this->studentProfile->level ?? null,
-            'enrollmentYear' => $this->studentProfile->enrollment_year ?? null,
+            'name' => optional($this->user)->name,
+            'phone_number' => optional($this->user)->phone_number,
+            'level' => $this->level ?? null,
+            'enrollmentYear' => $this->enrollment_year ?? null,
         ];
     }
 }
