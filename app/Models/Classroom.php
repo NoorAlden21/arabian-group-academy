@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Classroom extends Model
 {
     use HasFactory,SoftDeletes;
-    protected $fillable = ['name', 'level', 'year', 'students_count'];
+    protected $fillable = ['name', 'class_type_id','level', 'year', 'students_count'];
 
     public function students()
     {

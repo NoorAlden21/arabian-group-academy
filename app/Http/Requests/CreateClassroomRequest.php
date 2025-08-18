@@ -17,7 +17,8 @@ class CreateClassroomRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', 'unique:classrooms,name'],
+            'name' => ['required', 'string', 'max:255'],
+            'class_type_id' => ['required','exists:class_types,id'],
             'level' => ['required', 'string', 'max:255'],
             'year' => ['required', 'string', 'max:4'],
             'students_count' => ['nullable', 'integer', 'min:0'],

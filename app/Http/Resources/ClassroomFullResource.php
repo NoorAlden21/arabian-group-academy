@@ -14,7 +14,13 @@ class ClassroomFullResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            // 'level' => $this->level,
+            'classType' => $this->whenLoaded('classType', function () {
+                return [
+                    // 'id'   => $this->classType->id,
+                    'name' => $this->classType->name,
+                ];
+            }),
+            'level' => $this->level,
             'year' => $this->year,
             'studentsCount' => $this->students_count, // CamelCase
             'createdAt' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null, // تنسيق التاريخ

@@ -51,6 +51,7 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
         ->group(function () {
             Route::get('/', 'index');
             Route::post('/', 'store');
+            Route::get('/class-type-subjects/grouped', 'classTypeSubjectsGrouped');
             Route::get('/search', 'searchTeachers');
             Route::get('/{id}', 'show');
             Route::patch('/{id}', 'update');
