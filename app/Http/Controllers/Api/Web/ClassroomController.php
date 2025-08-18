@@ -43,6 +43,7 @@ class ClassroomController extends Controller
     {
         try {
             $classroom = $this->classroomService->createClassroom($request->validated());
+            $classroom->load(['classType']);
             return response()->json([
                 'message' => 'Classroom created successfully',
                 'classroom' => new ClassroomFullResource($classroom)

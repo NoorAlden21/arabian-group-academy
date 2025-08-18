@@ -8,15 +8,18 @@ use App\Http\Requests\CreateTeacherRequest;
 use App\Http\Requests\UpdateTeacherRequest;
 use App\Http\Resources\TeacherFullResource;
 use App\Http\Resources\TeacherBasicResource;
+use App\Services\ClassTypeSubjectService;
 use App\Services\TeacherService;
 
 class TeacherController extends Controller
 {
     protected $teacherService;
+    protected $ctsService;
 
-    public function __construct(TeacherService $teacherService)
+    public function __construct(TeacherService $teacherService, ClassTypeSubjectService $ctsService)
     {
         $this->teacherService = $teacherService;
+        $this->ctsService = $ctsService;
     }
 
     public function index()
@@ -30,6 +33,18 @@ class TeacherController extends Controller
             return response()->json([
                 'message' => 'Failed to fetch teachers',
                 'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function classTypeSubjectsGrouped(){
+        try {
+            $data = $this->ctsService->getGroupedByClassType();
+            return response()->json($data, 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch class type subjects grouped by class type',
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
