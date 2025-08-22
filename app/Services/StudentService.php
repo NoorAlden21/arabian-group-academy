@@ -46,17 +46,38 @@ class StudentService
         });
     }
 
-    public function getAllStudents()
-    {
-        return User::role('student')->get();
+    public function getAllStudents(int $perPage = 15) {
+        return User::role('student')
+            ->select('id', 'name', 'phone_number')
+            ->with([
+                'studentProfile:id,user_id,classroom_id,level,enrollment_year',
+                // 'studentProfile.classroom:id,name',
+                // 'studentProfile.classroom.classType:id,name',
+            ])
+            ->orderBy('id', 'desc')
+            ->paginate($perPage);
     }
 
-    public function getStudentById($id)
-    {
-        return User::role('student')
-            ->with(['studentProfile.classroom', 'studentProfile.parent'])
-            ->find($id);
-    }
+    public function getStudentById(int $id): ?User{
+    return User::role('student')
+        ->select('id', 'name', 'phone_number','gender','birth_date')
+        ->with([
+            'studentProfile:id,user_id,parent_id,classroom_id,level,enrollment_year,gpa,previous_status',
+
+            // ParentProfile + User
+            'studentProfile.parentProfile' => function ($q) {
+                $q->withTrashed()->select('id','user_id','occupation');
+            },
+            'studentProfile.parentProfile.user' => function ($q) {
+                $q->withTrashed()->select('id','name','phone_number');
+            },
+
+            // Classroom + ClassType
+            'studentProfile.classroom:id,name,year,class_type_id',
+            'studentProfile.classroom.classType:id,name',
+        ])
+        ->find($id);
+}
 
     public function updateStudent($id, array $data)
     {

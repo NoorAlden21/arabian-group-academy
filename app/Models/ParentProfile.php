@@ -11,13 +11,10 @@ class ParentProfile extends Model
     protected $fillable = ['user_id','phone_number','occupation'];
 
     public function user(){
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function children(){
         return $this->hasMany(StudentProfile::class,'parent_id');
     }
-
-
-
 }

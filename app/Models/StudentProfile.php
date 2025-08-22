@@ -17,23 +17,16 @@ class StudentProfile extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function parent()
-    {
-        return $this->belongsTo(ParentProfile::class, 'parent_id');
-    }
     public function parentProfile()
     {
         return $this->belongsTo(ParentProfile::class, 'parent_id');
     }
+    
     public function classroom()
     {
         return $this->belongsTo(Classroom::class);
     }
 
-    public function parentUser()
-    {
-        return $this->belongsTo(User::class, 'parent_id', 'id');
-    }
     public function subjects()
     {
         return $this->hasManyThrough(

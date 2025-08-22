@@ -14,12 +14,15 @@ class StudentBasicInfoResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $profile = $this->studentProfile;
+
         return [
-            'id' => $this->id,
-            'name' => optional($this->user)->name,
-            'phone_number' => optional($this->user)->phone_number,
-            'level' => $this->level ?? null,
-            'enrollmentYear' => $this->enrollment_year ?? null,
+            'id'             => $this->id,
+            'name'           => $this->name,
+            'phone_number'   => $this->phone_number,
+            'level'          => $profile->level ?? null,
+            'enrollmentYear' => $profile->enrollment_year ?? null,
+            'isAssigned'     => (bool) optional($profile)->classroom_id,
         ];
     }
 }
