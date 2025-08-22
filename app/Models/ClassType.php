@@ -9,9 +9,16 @@ class ClassType extends Model
 {
     use HasFactory;
     protected $fillable = ['name'];
+
     public function classTypeSubjects()
     {
         return $this->hasMany(ClassTypeSubject::class);
+    }
+
+    public function subjects()
+    {
+        return $this->belongsToMany(Subject::class, 'class_type_subjects')
+                    ->withTimestamps();
     }
 
     public function classrooms()

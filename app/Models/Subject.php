@@ -6,11 +6,22 @@ use Illuminate\Database\Eloquent\Model;
 
 class Subject extends Model
 {
-    protected $fillable = ['name', 'level'];
+    protected $fillable = ['name'];
 
     public function classSubjectTeachers()
     {
         return $this->hasMany(ClassSubjectTeacher::class);
+    }
+
+    public function classTypeSubjects()
+    {
+        return $this->hasMany(ClassTypeSubject::class);
+    }
+
+    public function classTypes()
+    {
+        return $this->belongsToMany(ClassType::class, 'class_type_subjects')
+                    ->withTimestamps();
     }
 
 //     public function schedules()

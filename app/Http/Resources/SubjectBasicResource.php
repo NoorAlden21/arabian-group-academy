@@ -12,7 +12,6 @@ class SubjectBasicResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            // 'level' => $this->level,
         ];
     }
 }

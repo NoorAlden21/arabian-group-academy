@@ -12,8 +12,14 @@ class SubjectResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'class_types' => $this->whenLoaded('classTypes', function () {
+                return $this->classTypes->map(function ($ct) {
+                    return [
+                        'id'   => $ct->id,
+                        'name' => $ct->name,
+                    ];
+                })->values();
+            }, []),
         ];
     }
 }

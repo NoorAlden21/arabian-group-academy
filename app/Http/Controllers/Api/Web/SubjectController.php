@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Web;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateSubjectRequest;
 use App\Http\Requests\UpdateSubjectRequest;
+use App\Http\Resources\SubjectBasicResource;
 use App\Http\Resources\SubjectResource;
 use App\Services\SubjectService;
 use Illuminate\Http\JsonResponse;
@@ -23,7 +24,7 @@ class SubjectController extends Controller
     {
         try {
             $subjects = $this->subjectService->getAllSubjects();
-            return SubjectResource::collection($subjects)->response()->setStatusCode(200);
+            return SubjectBasicResource::collection($subjects)->response()->setStatusCode(200);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch subjects',

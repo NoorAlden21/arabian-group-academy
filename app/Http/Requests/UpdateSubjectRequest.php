@@ -15,7 +15,9 @@ class UpdateSubjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['sometimes', 'required', 'string', 'max:255', Rule::unique('subjects')->ignore($this->route('id'))],
+            'name'             => ['sometimes', 'required', 'string', 'max:255', Rule::unique('subjects', 'name')->ignore($this->route('id'))],
+            'class_type_ids'   => ['sometimes', 'nullable','array'], 
+            'class_type_ids.*' => ['integer', 'exists:class_types,id'],
         ];
     }
 }

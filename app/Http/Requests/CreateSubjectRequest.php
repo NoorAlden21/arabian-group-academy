@@ -13,8 +13,10 @@ class CreateSubjectRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
-            'name' => ['required', 'string', 'max:255', 'unique:subjects,name'],
+         return [
+            'name'             => ['required', 'string', 'max:255', 'unique:subjects,name'],
+            'class_type_ids'   => ['sometimes', 'nullable','array'],
+            'class_type_ids.*' => ['integer', 'exists:class_types,id'],
         ];
     }
 }
