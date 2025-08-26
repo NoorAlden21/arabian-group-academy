@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\Mobile\ScheduleController;
+use App\Http\Controllers\Api\Web\ScheduleController;
 use App\Http\Controllers\Api\Web\ClassroomController;
 use App\Http\Controllers\Api\Web\ClassTypeController;
 use App\Http\Controllers\Api\Web\StudentController;

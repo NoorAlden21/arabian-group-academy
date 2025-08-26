@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\StudentProfile;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -15,11 +17,12 @@ class ParentService
         return User::role('parent')->get();
     }
 
-    public function getParentById($id){
+    public function getParentById($id)
+    {
         return User::role('parent')
-        ->with(['parentProfile.children.user'])
-        ->whereHas('parentProfile')
-        ->find($id);
+            ->with(['parentProfile.children.user'])
+            ->whereHas('parentProfile')
+            ->find($id);
     }
 
     public function updateParent($id, array $data)
@@ -106,5 +109,70 @@ class ParentService
         }
 
         return $query->paginate(10);
+    }
+    //-------------mobile
+    public function getParentChildren(User $parentUser): Collection
+    {
+        if (!$parentUser->hasRole('parent') || !$parentUser->parentProfile) {
+            return collect();
+        }
+
+        return $parentUser->parentProfile->children()->with('user', 'classroom')->get();
+    }
+
+    /**
+     * Get the schedule for a specific child.
+     */
+    public function getChildSchedule(User $parentUser, int $childId): Collection
+    {
+        $child = $this->getChildIfAuthorized($parentUser, $childId);
+
+        if (!$child) {
+            return collect();
+        }
+
+        return $child->schedules()->get();
+    }
+
+    /**
+     * Get the homework for a specific child.
+     */
+    public function getChildHomework(User $parentUser, int $childId): Collection
+    {
+        $child = $this->getChildIfAuthorized($parentUser, $childId);
+
+        if (!$child) {
+            return collect();
+        }
+
+        return $child->homeworks()->get();
+    }
+
+    /**
+     * Get the grades for a specific child.
+     */
+    public function getChildGrades(User $parentUser, int $childId): Collection
+    {
+        $child = $this->getChildIfAuthorized($parentUser, $childId);
+
+        if (!$child) {
+            return collect();
+        }
+
+        return $child->grades()->with('subject')->get();
+    }
+
+    /**
+     * Helper method to check if the parent is authorized to view the child's data.
+     */
+    protected function getChildIfAuthorized(User $parentUser, int $childId): ?StudentProfile
+    {
+        if (!$parentUser->hasRole('parent') || !$parentUser->parentProfile) {
+            return null;
+        }
+
+        $child = $parentUser->parentProfile->children()->where('id', $childId)->first();
+
+        return $child;
     }
 }

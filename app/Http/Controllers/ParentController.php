@@ -17,7 +17,7 @@ class ParentController extends Controller
     public function index(){
         try{
             $parents = $this->parentService->getAllParents();
-    
+
             return response()->json([
                 'parents' => ParentBasicResource::collection($parents)
             ],200);
