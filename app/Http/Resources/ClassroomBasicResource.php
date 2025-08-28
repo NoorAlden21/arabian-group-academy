@@ -17,6 +17,12 @@ class ClassroomBasicResource extends JsonResource
             'level' => $this->level,
             'year' => $this->year,
             'studentsCount' => $this->students_count,
+            'type' => $this->whenLoaded('classType', function () {
+                return [
+                    'id' => $this->classType->id,
+                    'name' => $this->classType->name,
+                ];
+            }),
         ];
     }
 }

@@ -17,11 +17,11 @@ class StudentProfile extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function parentProfile()
+    public function parent()
     {
         return $this->belongsTo(ParentProfile::class, 'parent_id');
     }
-    
+
     public function classroom()
     {
         return $this->belongsTo(Classroom::class);

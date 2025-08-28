@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\Schedule;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
 class ScheduleService
@@ -63,7 +64,7 @@ class ScheduleService
 
     public function getAllSchedules(): Collection
     {
-        return Schedule::with(['classSubjectTeacher.classroom', 'classSubjectTeacher.subject', 'classSubjectTeacher.teacher.user'])->get();
+        return Schedule::with(['classSubjectTeacher.classroom.classType', 'classSubjectTeacher.classroom', 'classSubjectTeacher.subject', 'classSubjectTeacher.teacher.user'])->get();
     }
 
     /**
@@ -100,5 +101,33 @@ class ScheduleService
     {
         $schedule = Schedule::findOrFail($id);
         return $schedule->delete();
+    }
+    public function getAllSchedulesQuery(): Builder
+    {
+        return Schedule::with([
+            'classSubjectTeacher.classroom.classType',
+            'classSubjectTeacher.classroom',
+            'classSubjectTeacher.subject',
+            'classSubjectTeacher.teacher.user'
+        ]);
+    }
+
+    public function getSchedulesByClassroomId(int $classroomId): Collection
+    {
+        return $this->getAllSchedulesQuery()
+            ->whereHas('classSubjectTeacher', function ($query) use ($classroomId) {
+                $query->where('classroom_id', $classroomId);
+            })->get();
+    }
+
+    /**
+     * Get schedules by teacher ID.
+     */
+    public function getSchedulesByTeacherId(int $teacherId): Collection
+    {
+        return $this->getAllSchedulesQuery()
+            ->whereHas('classSubjectTeacher', function ($query) use ($teacherId) {
+                $query->where('teacher_profile_id', $teacherId);
+            })->get();
     }
 }

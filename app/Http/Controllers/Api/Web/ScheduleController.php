@@ -19,12 +19,21 @@ class ScheduleController extends Controller
     {
         $this->scheduleService = $scheduleService;
     }
-
     public function index(): JsonResponse
     {
         try {
+            // Get all schedules with their related data
             $schedules = $this->scheduleService->getAllSchedules();
-            return ScheduleResource::collection($schedules)->response()->setStatusCode(200);
+
+            // Group the schedules by day and transform them using the ScheduleResource
+            $groupedSchedules = $schedules->groupBy('day')->map(function ($daySchedules) {
+                return ScheduleResource::collection($daySchedules);
+            });
+
+            // Return the grouped data in a clean JSON format
+            return response()->json([
+                'data' => $groupedSchedules
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch schedules',
@@ -98,6 +107,50 @@ class ScheduleController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to delete schedule',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    public function getClassroomSchedules(int $id): JsonResponse
+    {
+        try {
+            $schedules = $this->scheduleService->getSchedulesByClassroomId($id);
+
+            $groupedSchedules = $schedules->groupBy('day')->map(function ($daySchedules) {
+                return ScheduleResource::collection($daySchedules);
+            });
+
+            return response()->json([
+                'data' => $groupedSchedules
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch classroom schedules',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get schedules for a specific teacher.
+     */
+    public function getTeacherSchedules(int $id): JsonResponse
+    {
+        try {
+            $schedules = $this->scheduleService->getSchedulesByTeacherId($id);
+
+            $groupedSchedules = $schedules->groupBy('day')->map(function ($daySchedules) {
+                return ScheduleResource::collection($daySchedules);
+            });
+
+            return response()->json([
+                'data' => $groupedSchedules
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch teacher schedules',
                 'error' => $e->getMessage()
             ], 500);
         }

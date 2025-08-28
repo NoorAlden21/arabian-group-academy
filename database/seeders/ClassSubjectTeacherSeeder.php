@@ -2,64 +2,47 @@
 
 namespace Database\Seeders;
 
-use App\Models\Classroom;
-use App\Models\ClassSubjectTeacher;
-use App\Models\Subject;
-use App\Models\User;
 use Illuminate\Database\Seeder;
+use App\Models\ClassSubjectTeacher;
+use App\Models\Classroom;
+use App\Models\Subject;
+use App\Models\Teacher;
+use App\Models\TeacherProfile;
 
 class ClassSubjectTeacherSeeder extends Seeder
 {
+    /**
+     * Run the database seeds.
+     */
     public function run(): void
     {
-        $classrooms = Classroom::all()->keyBy('name');
-        $subjects = Subject::all()->keyBy('name');
-        // يجب أن نحمل teacherProfile هنا لأننا نستخدمه للتحقق من teachableSubjects
-        $teachers = User::role('teacher')->with('teacherProfile')->get()->keyBy('name');
+        // نجيب كل الصفوف والمواد والمدرسين
+        $classrooms = Classroom::all();
+        $subjects   = Subject::all();
+        $teachers   = TeacherProfile::all();
 
-        $assignments = [
-            ['classroom' => '9A', 'subject' => 'math', 'teacher' => 'Mohammed Math'],
-            ['classroom' => 'BacSci-A', 'subject' => 'math', 'teacher' => 'Mohammed Math'],
-            ['classroom' => '9A', 'subject' => 'english', 'teacher' => 'Aisha English'],
-            ['classroom' => 'BacLit-A', 'subject' => 'english', 'teacher' => 'Aisha English'],
-            ['classroom' => 'BacSci-A', 'subject' => 'physics', 'teacher' => 'Sami Physics'],
-        ];
+        if ($classrooms->isEmpty() || $subjects->isEmpty() || $teachers->isEmpty()) {
+            $this->command->warn('⚠️ الجداول (classrooms, subjects, teachers) فارغة. اضف بياناتها أولاً.');
+            return;
+        }
 
-        foreach ($assignments as $assignment) {
-            $classroom = $classrooms[$assignment['classroom']] ?? null;
-            $subject = $subjects[$assignment['subject']] ?? null;
-            $teacherUser = $teachers[$assignment['teacher']] ?? null;
+        // توزيع المواد على الصفوف
+        foreach ($classrooms as $classroom) {
+            // كل صف يأخذ 5-7 مواد
+            $selectedSubjects = $subjects->random(rand(5, 7));
 
-            if ($classroom && $subject && $teacherUser && $teacherUser->teacherProfile) {
-                $teacherProfile = $teacherUser->teacherProfile;
+            foreach ($selectedSubjects as $subject) {
+                // اختيار مدرس عشوائي للمادة
+                $teacher = $teachers->random();
 
-                // هذا الجزء من التحقق صحيح وسنبقيه
-                $classTypeSubjectExists = $classroom->classType
-                    ->classTypeSubjects()
-                    ->where('subject_id', $subject->id)
-                    ->exists();
-
-                $teacherCanTeachSubjectInClassType = $teacherProfile
-                    ->teachableSubjects()
-                    ->whereHas('classTypeSubject', function ($query) use ($classroom, $subject) {
-                        $query->where('class_type_id', $classroom->class_type_id)
-                              ->where('subject_id', $subject->id);
-                    })
-                    ->exists();
-
-                if ($classTypeSubjectExists && $teacherCanTeachSubjectInClassType) {
-                    ClassSubjectTeacher::firstOrCreate([
-                        'classroom_id' => $classroom->id,
-                        'subject_id' => $subject->id,
-                        // هنا هو التعديل الأهم: استخدم $teacherUser->id وليس $teacherProfile->id
-                        'teacher_profile_id' => $teacherUser->teacherProfile->id,
-                    ]);
-                } else {
-                    $this->command->warn("Skipping assignment for Classroom: {$assignment['classroom']}, Subject: {$assignment['subject']}, Teacher: {$assignment['teacher']} - ClassTypeSubject or TeacherCanTeach mismatch.");
-                }
-            } else {
-                $this->command->warn("Skipping assignment for Classroom: {$assignment['classroom']}, Subject: {$assignment['subject']}, Teacher: {$assignment['teacher']} - Missing required entity or teacherProfile.");
+                // إنشاء الربط
+                ClassSubjectTeacher::create([
+                    'classroom_id' => $classroom->id,
+                    'subject_id'   => $subject->id,
+                    'teacher_profile_id'   => $teacher->id,
+                ]);
             }
         }
+
     }
 }

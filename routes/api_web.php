@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Web\ScheduleController;
 use App\Http\Controllers\Api\Web\ClassroomController;
+use App\Http\Controllers\Api\Web\ClassSubjectTeacherController;
 use App\Http\Controllers\Api\Web\ClassTypeController;
 use App\Http\Controllers\Api\Web\StudentController;
 use App\Http\Controllers\Api\Web\SubjectController;
@@ -91,9 +92,16 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
             Route::apiResource('subjects', SubjectController::class);
         });
 
-        Route::middleware(['role:admin'])
+    Route::middleware(['role:admin'])
         ->prefix('/admin')
         ->group(function () {
             Route::apiResource('schedules', ScheduleController::class);
+            Route::get('classrooms/{id}/schedules', [ScheduleController::class, 'getClassroomSchedules']);
+            Route::get('teachers/{id}/schedules', [ScheduleController::class, 'getTeacherSchedules']);
+            Route::get('class-types', [ClassTypeController::class, 'index']);
+            Route::get('subjects', [SubjectController::class, 'index']);
+            Route::get('classrooms', [ClassroomController::class, 'index']);
+            Route::get('teachers', [TeacherController::class, 'index']);
+            Route::get('class-subject-teachers', [ClassSubjectTeacherController::class, 'index']);
         });
 });
