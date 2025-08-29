@@ -2,12 +2,12 @@
 
 use App\Http\Controllers\Api\Mobile\AuthController;
 use App\Http\Controllers\Api\Mobile\ProfileController;
-use App\Http\Controllers\Api\Mobile\ScheduleController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\Api\Mobile\HomeworkController;
 use App\Http\Controllers\Api\Mobile\ParentController;
 use App\Http\Controllers\Api\Mobile\StudentController;
 use App\Http\Controllers\Api\Mobile\TeacherController;
+use App\Http\Controllers\Api\Web\ClassSubjectTeacherController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('mobile')->group(function () {
@@ -20,9 +20,6 @@ Route::prefix('mobile')->group(function () {
 
         Route::get('profile', [ProfileController::class, 'show']);
 
-
-        Route::get('schedules/my', [ScheduleController::class, 'mySchedule']);
-        Route::get('schedules/my/today', [ScheduleController::class, 'show']);
 
         //quizz routes
         Route::prefix('/quizz')->controller(QuizController::class)->group(function () {
@@ -45,6 +42,8 @@ Route::prefix('mobile')->group(function () {
         });
 
         Route::group(['prefix' => 'teacher', 'middleware' => 'role:teacher'], function () {
+            Route::get('/my-schedule', [TeacherController::class, 'mySchedule']);
+            Route::get('class-subject-teachers', [ClassSubjectTeacherController::class, 'index']);
 
             Route::get('/homeworks', [HomeworkController::class, 'index']);
             Route::post('/homeworks', [HomeworkController::class, 'store']);
@@ -53,15 +52,21 @@ Route::prefix('mobile')->group(function () {
             Route::delete('/homeworks/{id}', [HomeworkController::class, 'destroy']);
 
             Route::get('/assigned-classes-and-subjects', [TeacherController::class, 'getAssignedClassesAndSubjects']);
-
             Route::get('/students/{classroomId}', [StudentController::class, 'getStudentsInClassroom']);
         });
 
         Route::group(['prefix' => 'parent', 'middleware' => 'role:parent'], function () {
             Route::get('/children', [ParentController::class, 'getChildren']);
             Route::get('/children/{childId}/schedule', [ParentController::class, 'getChildSchedule']);
+
+
             Route::get('/children/{childId}/homeworks', [ParentController::class, 'getChildHomework']);
-            Route::get('/children/{childId}/grades', [ParentController::class, 'getChildGrades']);
+            // Route::get('/children/{childId}/grades', [ParentController::class, 'getChildGrades']);
+        });
+
+        Route::group(['prefix' => 'student', 'middleware' => 'role:student'], function () {
+            Route::get('/homeworks', [HomeworkController::class, 'getStudentHomeworks']);
+            Route::get('/my-schedule', [StudentController::class, 'mySchedule']);
         });
     });
 });

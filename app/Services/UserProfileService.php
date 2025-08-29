@@ -23,7 +23,7 @@ class UserProfileService
         if ($user->hasRole('student')) {
             $user->load([
                 'studentProfile.classroom.classType',
-                'studentProfile.parent.user',
+                'studentProfile.parentProfile.user',
             ]);
 
             return new StudentFullInfoResource($user);

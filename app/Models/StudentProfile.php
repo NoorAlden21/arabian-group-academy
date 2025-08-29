@@ -17,7 +17,7 @@ class StudentProfile extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function parent()
+    public function parentProfile()
     {
         return $this->belongsTo(ParentProfile::class, 'parent_id');
     }

@@ -43,9 +43,9 @@ class ScheduleService
             }
         } elseif ($user->hasRole('parent')) {
             $user->load([
-                'parentProfile.students.classroom.classSubjectTeachers.schedules.classSubjectTeacher.classroom',
-                'parentProfile.students.classroom.classSubjectTeachers.schedules.classSubjectTeacher.subject',
-                'parentProfile.students.classroom.classSubjectTeachers.schedules.classSubjectTeacher.teacher.user'
+                'parentProfile.children.classroom.classSubjectTeachers.schedules.classSubjectTeacher.classroom',
+                'parentProfile.children.classroom.classSubjectTeachers.schedules.classSubjectTeacher.subject',
+                'parentProfile.children.classroom.classSubjectTeachers.schedules.classSubjectTeacher.teacher.user'
             ]);
 
             foreach ($user->parentProfile?->students ?? [] as $student) {

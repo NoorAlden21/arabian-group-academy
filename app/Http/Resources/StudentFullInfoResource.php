@@ -23,8 +23,9 @@ class StudentFullInfoResource extends JsonResource
             'name'         => $this->name,
             'phone_number' => $this->phone_number,
             'gender'       => $this->gender,
-            'birthDate'    => $this->birth_date,
-
+            'birthDate' => $this->birth_date
+                ? $this->birth_date->format('Y-m-d')
+                : null,
             'profile' => [
                 'level'          => $profile->level ?? null,
                 'enrollmentYear' => $profile->enrollment_year ?? null,
@@ -32,26 +33,26 @@ class StudentFullInfoResource extends JsonResource
 
                 'classroom'      => $this->when(
                     $classroom,
-                    fn () => [
+                    fn() => [
                         'id'        => $classroom->id,
                         'name'      => $classroom->name,
                         'year'      => $classroom->year,
                         'classType' => $this->when(
                             $classroom->classType ?? null,
-                            fn () => [
+                            fn() => [
                                 'id'   => $classroom->classType->id,
                                 'name' => $classroom->classType->name,
                             ]
                         ),
                     ]
                 ),
-                'parent' => $this->when($parentProfile, fn () => [
-                'id'           => $parentProfile->id,
-                'name'         => data_get($parentProfile, 'user.name'),
-                'phone_number' => data_get($parentProfile, 'user.phone_number'),
-            ]),
+                'parent' => $this->when($parentProfile, fn() => [
+                    'id'           => $parentProfile->id,
+                    'name'         => data_get($parentProfile, 'user.name'),
+                    'phone_number' => data_get($parentProfile, 'user.phone_number'),
+                ]),
             ],
-            
+
 
             // 'parent' => [
             //     'id'           => $parentProfile->id ?? null,

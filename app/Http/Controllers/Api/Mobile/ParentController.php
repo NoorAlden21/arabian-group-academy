@@ -7,7 +7,6 @@ use App\Http\Resources\ChildBasicResource;
 use App\Http\Resources\HomeworkResource;
 use App\Http\Resources\ScheduleDetailsResource;
 use App\Http\Resources\GradeResource;
-use App\Http\Resources\StudentBasicInfoResource;
 use App\Models\StudentProfile;
 use App\Models\User;
 use App\Services\ParentService;
@@ -15,6 +14,8 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ParentController extends Controller
 {
@@ -27,16 +28,18 @@ class ParentController extends Controller
 
     /**
      * Display a list of children linked to the authenticated parent.
+     * This is the initial screen for the parent.
      */
     public function getChildren(Request $request): JsonResponse
     {
         try {
             $children = $this->parentService->getParentChildren($request->user());
-            return StudentBasicInfoResource::collection($children)->response()->setStatusCode(200);
+            return ChildBasicResource::collection($children)->response()->setStatusCode(200);
         } catch (\Exception $e) {
+            Log::error("Failed to fetch children for parent ID {$request->user()->id}: " . $e->getMessage());
             return response()->json([
                 'message' => 'Failed to fetch children.',
-                'error' => $e->getMessage()
+                'error' => config('app.debug') ? $e->getMessage() : 'Server Error'
             ], 500);
         }
     }
@@ -44,69 +47,64 @@ class ParentController extends Controller
     /**
      * Display the schedule for a specific child.
      */
-  public function getChildSchedule(User $parentUser, int $childId): Collection
+    public function getChildSchedule(int $childId): JsonResponse
     {
-        $child = $this->getChildIfAuthorized($parentUser, $childId);
+        try {
+            $schedules = $this->parentService->getChildSchedule(Auth::user(), $childId);
 
-        if (!$child || !$child->classroom) {
-            return collect();
+            // Group the schedules by day for a cleaner response
+            $groupedSchedules = $schedules->groupBy('day')->map(function ($daySchedules) {
+                return ScheduleDetailsResource::collection($daySchedules);
+            });
+
+            return response()->json(['data' => $groupedSchedules], 200);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Child not found or unauthorized.'], 404);
+        } catch (\Exception $e) {
+            Log::error("Failed to fetch child's schedule for child ID {$childId}: " . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to fetch child\'s schedule.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Server Error'
+            ], 500);
         }
-
-        // تحميل العلاقات بشكل يدوي وواضح بدلاً من الاعتماد على علاقة معقدة في الموديل
-        $child->classroom->load('classSubjectTeachers.schedules');
-
-        // تجميع كل الجداول الزمنية من كل ربط
-        $schedules = collect();
-        foreach ($child->classroom->classSubjectTeachers as $cst) {
-            $schedules = $schedules->merge($cst->schedules);
-        }
-
-        // ترتيب الجداول وإرجاعها
-        return $schedules->sortBy([
-            ['day', 'asc'],
-            ['start_time', 'asc']
-        ])->values();
     }
 
-        protected function getChildIfAuthorized(User $parentUser, int $childId): ?StudentProfile
-    {
-        if (!$parentUser->hasRole('parent') || !$parentUser->parentProfile) {
-            return null;
-        }
-
-        $child = $parentUser->parentProfile->children()->where('id', $childId)->first();
-
-        return $child;
-    }
     /**
      * Display the homework for a specific child.
      */
-    public function getChildHomework(Request $request, int $childId): JsonResponse
+    public function getChildHomework(int $childId): JsonResponse
     {
         try {
-            $homeworks = $this->parentService->getChildHomework($request->user(), $childId);
-            if ($homeworks->isEmpty()) {
-                return response()->json(['message' => 'Child not found or no homework available.'], 404);
-            }
+            $homeworks = $this->parentService->getChildHomework(Auth::user(), $childId);
             return HomeworkResource::collection($homeworks)->response()->setStatusCode(200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Child not found or unauthorized.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch child\'s homework.', 'error' => $e->getMessage()], 500);
+            Log::error("Failed to fetch child's homework for child ID {$childId}: " . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to fetch child\'s homework.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Server Error'
+            ], 500);
         }
     }
 
     /**
      * Display the grades for a specific child.
      */
-    // public function getChildGrades(Request $request, int $childId): JsonResponse
+    // public function getChildGrades(int $childId): JsonResponse
     // {
     //     try {
-    //         $grades = $this->parentService->getChildGrades($request->user(), $childId);
-    //         if ($grades->isEmpty()) {
-    //             return response()->json(['message' => 'Child not found or no grades available.'], 404);
-    //         }
+    //         $grades = $this->parentService->getChildGrades(Auth::user(), $childId);
     //         return GradeResource::collection($grades)->response()->setStatusCode(200);
+    //     } catch (ModelNotFoundException $e) {
+    //         return response()->json(['message' => 'Child not found or unauthorized.'], 404);
     //     } catch (\Exception $e) {
-    //         return response()->json(['message' => 'Failed to fetch child\'s grades.', 'error' => $e->getMessage()], 500);
+    //         Log::error("Failed to fetch child's grades for child ID {$childId}: " . $e->getMessage());
+    //         return response()->json([
+    //             'message' => 'Failed to fetch child\'s grades.',
+    //             'error' => config('app.debug') ? $e->getMessage() : 'Server Error'
+    //         ], 500);
     //     }
     // }
 }

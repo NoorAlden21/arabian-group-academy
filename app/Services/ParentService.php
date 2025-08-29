@@ -12,6 +12,14 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 class ParentService
 {
 
+    protected ScheduleService $scheduleService;
+    protected HomeworkService $homeworkService;
+
+    public function __construct(ScheduleService $scheduleService, HomeworkService $homeworkService)
+    {
+        $this->scheduleService = $scheduleService;
+        $this->homeworkService = $homeworkService;
+    }
     public function getAllParents()
     {
         return User::role('parent')->get();
@@ -128,10 +136,10 @@ class ParentService
         $child = $this->getChildIfAuthorized($parentUser, $childId);
 
         if (!$child) {
-            return collect();
+            throw new ModelNotFoundException('Child not found or not authorized.');
         }
 
-        return $child->schedules()->get();
+        return $this->scheduleService->getSchedulesByClassroomId($child->classroom_id);
     }
 
     /**
@@ -142,11 +150,12 @@ class ParentService
         $child = $this->getChildIfAuthorized($parentUser, $childId);
 
         if (!$child) {
-            return collect();
+            throw new ModelNotFoundException('Child not found or not authorized.');
         }
 
-        return $child->homeworks()->get();
+        return $this->homeworkService->getStudentHomeworksByClassroomId($child->classroom_id);
     }
+
 
     /**
      * Get the grades for a specific child.

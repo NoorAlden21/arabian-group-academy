@@ -27,6 +27,23 @@ class HomeworkService
         return $homeworks;
     }
 
+
+    public function getStudentHomeworks(User $studentUser): Collection
+    {
+        if (!$studentUser->hasRole('student') || !$studentUser->studentProfile || !$studentUser->studentProfile->classroom) {
+            return collect();
+        }
+
+        $studentUser->load('studentProfile.classroom.classSubjectTeachers.homeworks');
+
+        $homeworks = collect();
+        foreach ($studentUser->studentProfile->classroom->classSubjectTeachers as $cst) {
+            $homeworks = $homeworks->merge($cst->homeworks);
+        }
+
+        return $homeworks;
+    }
+
     /**
      * Create a new homework.
      */

@@ -73,4 +73,30 @@ class HomeworkController extends Controller
             ], 403);
         }
     }
+
+    public function getTeacherHomeworks(Request $request): JsonResponse
+    {
+        try {
+            $homeworks = $this->homeworkService->getTeacherHomeworks($request->user());
+            return HomeworkResource::collection($homeworks)->response()->setStatusCode(200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch homeworks.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getStudentHomeworks(Request $request): JsonResponse
+    {
+        try {
+            $homeworks = $this->homeworkService->getStudentHomeworks($request->user());
+            return HomeworkResource::collection($homeworks)->response()->setStatusCode(200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch student homeworks.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

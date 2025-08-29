@@ -6,7 +6,6 @@ use Illuminate\Database\Seeder;
 use App\Models\ClassSubjectTeacher;
 use App\Models\Classroom;
 use App\Models\Subject;
-use App\Models\Teacher;
 use App\Models\TeacherProfile;
 
 class ClassSubjectTeacherSeeder extends Seeder
@@ -16,33 +15,45 @@ class ClassSubjectTeacherSeeder extends Seeder
      */
     public function run(): void
     {
-        // نجيب كل الصفوف والمواد والمدرسين
+        // تنظيف الجدول
+        ClassSubjectTeacher::query()->delete();
+
         $classrooms = Classroom::all();
-        $subjects   = Subject::all();
-        $teachers   = TeacherProfile::all();
+        $subjects   = Subject::all()->keyBy('name');
+        $teachers   = TeacherProfile::all()->keyBy('department'); // المدرسين معرفين بالـ department
 
         if ($classrooms->isEmpty() || $subjects->isEmpty() || $teachers->isEmpty()) {
             $this->command->warn('⚠️ الجداول (classrooms, subjects, teachers) فارغة. اضف بياناتها أولاً.');
             return;
         }
 
-        // توزيع المواد على الصفوف
+        // خريطة: أي مادة يدرّسها أي قسم
+        $subjectTeacherMap = [
+            'math'       => 'math',
+            'english'    => 'english',
+            'physics'    => 'physics',
+            'arabic'     => 'arabic',
+            'chemistry'  => 'chemistry',
+            'biology'    => 'biology',
+            'history'    => 'history',
+            'geography'  => 'geography',
+            'philosophy' => 'philosophy',
+            // المواد الأخرى مثل religion أو french أو general sciences أو social studies
+            // ممكن تضيف لهم مدرسين حسب توفرهم
+        ];
+
         foreach ($classrooms as $classroom) {
-            // كل صف يأخذ 5-7 مواد
-            $selectedSubjects = $subjects->random(rand(5, 7));
+            foreach ($subjectTeacherMap as $subjectName => $teacherDept) {
+                if (!isset($subjects[$subjectName]) || !isset($teachers[$teacherDept])) {
+                    continue; // إذا المادة أو المدرس غير موجودين
+                }
 
-            foreach ($selectedSubjects as $subject) {
-                // اختيار مدرس عشوائي للمادة
-                $teacher = $teachers->random();
-
-                // إنشاء الربط
                 ClassSubjectTeacher::create([
-                    'classroom_id' => $classroom->id,
-                    'subject_id'   => $subject->id,
-                    'teacher_profile_id'   => $teacher->id,
+                    'classroom_id'       => $classroom->id,
+                    'subject_id'         => $subjects[$subjectName]->id,
+                    'teacher_profile_id' => $teachers[$teacherDept]->id,
                 ]);
             }
         }
-
     }
 }

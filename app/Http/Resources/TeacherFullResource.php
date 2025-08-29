@@ -19,11 +19,13 @@ class TeacherFullResource extends JsonResource
             'name' => $this->name,
             'phone_number' => $this->phone_number,
             'gender' => $this->gender,
-            'birth_date' => $this->birth_date,
+            'birthDate' => $this->birth_date
+                ? $this->birth_date->format('Y-m-d')
+                : null,
             'department' => $this->teacherProfile->department ?? null,
 
-            'teachable_subjects' => $this->teacherProfile?->teachableSubjects?->map(function ($item){
-                return[
+            'teachable_subjects' => $this->teacherProfile?->teachableSubjects?->map(function ($item) {
+                return [
                     'class_type' => $item->classTypeSubject->classType->name,
                     'subject' => $item->classTypeSubject->subject->name
                 ];
