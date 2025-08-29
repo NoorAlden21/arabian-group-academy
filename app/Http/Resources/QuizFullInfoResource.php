@@ -15,23 +15,30 @@ class QuizFullInfoResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'title' => $this->title,
+            'id'          => $this->id,
+            'title'       => $this->title,
+            'subject' => $this->whenLoaded('subject', function () {
+                return [
+                    'id' => $this->subject->id,
+                    'name' => $this->subject->name,
+                ];
+            }),
             'description' => $this->description,
-            'started_at' => $this->started_at,
-            'deadline' => $this->deadline,
-            'created_at' => $this->created_at,
-
-            'questions' => $this->whenLoaded('questions', function(){
-                return $this->questions->map(function ($question){
+            'started_at'  => $this->started_at,
+            'deadline'    => $this->deadline,
+            'is_published'=> (bool) $this->is_published,
+            'questions'   => $this->whenLoaded('questions', function () {
+                return $this->questions->map(function ($question) {
                     return [
-                        'id' => $question->id,
-                        'question text' => $question->question_text,
-                        'choices' => $question->choices->map(function ($choice){
+                        'id'                 => $question->id,
+                        'question_text'      => $question->question_text,      
+                        'question_image_url' => $question->question_image_url, 
+                        'choices'            => $question->choices->map(function ($choice) {
                             return [
-                                'id' => $choice->id,
-                                'choice_text' => $choice->choice_text,
-                                'is_correct' => $choice->is_correct,
+                                'id'               => $choice->id,
+                                'choice_text'      => $choice->choice_text,     
+                                'choice_image_url' => $choice->choice_image_url,
+                                'is_correct'       => (bool) $choice->is_correct,
                             ];
                         }),
                     ];

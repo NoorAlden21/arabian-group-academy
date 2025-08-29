@@ -8,6 +8,7 @@ class Quiz extends Model
 {
     protected $fillable = [
         'teacher_profile_id',
+        'subject_id',
         'title',
         'description',
         'deadline',
@@ -28,5 +29,9 @@ class Quiz extends Model
 
     public function submissions(){
         return $this->hasMany(QuizSubmission::class);
+    }
+
+    public function subject(){
+        return $this->belongsTo(Subject::class);
     }
 }

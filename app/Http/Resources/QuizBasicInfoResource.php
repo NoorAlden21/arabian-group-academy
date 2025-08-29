@@ -16,6 +16,12 @@ class QuizBasicInfoResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'subject' => $this->whenLoaded('subject', function () {
+                return [
+                    'id' => $this->subject->id,
+                    'name' => $this->subject->name,
+                ];
+            }),
             'title' => $this->title,
             'description' => $this->description,
             'started_at' => $this->started_at,

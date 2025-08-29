@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Web\AttendanceController;
 use App\Http\Controllers\Api\Web\ScheduleController;
 use App\Http\Controllers\Api\Web\ClassroomController;
 use App\Http\Controllers\Api\Web\ClassSubjectTeacherController;
@@ -8,6 +9,7 @@ use App\Http\Controllers\Api\Web\StudentController;
 use App\Http\Controllers\Api\Web\SubjectController;
 use App\Http\Controllers\Api\Web\TeacherController;
 use App\Http\Controllers\Api\Web\UserController;
+
 use App\Http\Controllers\ParentController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,14 +38,22 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
             Route::delete('/{id}', 'destroy');
             Route::post('/restore/{id}', 'restoreStudent');
             Route::delete('/force-delete/{id}', 'forceDeleteStudent');
-        });
+    });
+
+    Route::prefix('/admin/attendance/students')
+           ->middleware('role:admin')
+           ->controller(AttendanceController::class)
+           ->group(function(){
+                Route::get('','meta');
+                Route::post('', 'storeStudentAbsences');
+    });
 
     Route::prefix('/admin/parents')
         ->middleware('role:admin')
         ->controller(ParentController::class)
         ->group(function () {
             Route::get('/{id}', 'show');
-        });
+    });
 
     //teachers
     Route::prefix('/admin/teachers')

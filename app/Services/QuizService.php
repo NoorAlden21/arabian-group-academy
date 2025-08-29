@@ -11,6 +11,7 @@ use App\Models\QuizSubmission;
 use App\Models\StudentProfile;
 use Illuminate\Container\Attributes\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use PDO;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 
@@ -31,64 +32,115 @@ class QuizService{
         return DB::transaction(function () use ($data, $teacherProfileId) {
             $quiz = Quiz::create([
                 'teacher_profile_id' => $teacherProfileId,
-                'title' => $data['title'],
-                'description' => $data['description'] ?? null,
-                'started_at' => $data['started_at'] ?? null,
-                'deadline' => $data['deadline'] ?? null,
-                'is_published' => false,
+                'subject_id'         => $data['subject_id'],     
+                'title'              => $data['title'],
+                'description'        => $data['description'] ?? null,
+                'started_at'         => $data['started_at'] ?? null,
+                'deadline'           => $data['deadline'] ?? null,
+                'is_published'       => false,
             ]);
 
-            foreach($data['questions'] as $questionData){
-                $question = QuizQuestion::create([
-                    'quiz_id' => $quiz->id,
-                    'question_text' => $questionData['question_text']
-                ]);
 
-                foreach($questionData['choices'] as $choiceData){
-                    QuizQuestionChoice::create([
-                        'question_id' => $question->id,
-                        'choice_text' => $choiceData['choice_text'],
-                        'is_correct' => $choiceData['is_correct'],
-                    ]);
+            foreach ($data['questions'] as $qIndex => $questionData) {
+                $question = new QuizQuestion();
+                $question->quiz_id = $quiz->id;
+                $question->question_text = $questionData['question_text'] ?? null;
+
+                // معالجة صورة السؤال إذا كانت موجودة
+                if (isset($questionData['question_image']) && $questionData['question_image'] instanceof \Illuminate\Http\UploadedFile) {
+                    $path = $questionData['question_image']->store('quiz_questions', 'public');
+                    $question->question_image = $path;
+                }
+
+                $question->save();
+
+                foreach ($questionData['choices'] as $cIndex => $choiceData) {
+                    $choice = new QuizQuestionChoice();
+                    $choice->question_id = $question->id;
+                    $choice->choice_text = $choiceData['choice_text'] ?? null;
+                    $choice->is_correct = $choiceData['is_correct'] ?? false;
+
+                    // معالجة صورة الخيار إذا كانت موجودة
+                    if (isset($choiceData['choice_image']) && $choiceData['choice_image'] instanceof \Illuminate\Http\UploadedFile) {
+                        $path = $choiceData['choice_image']->store('quiz_choices', 'public');
+                        $choice->choice_image = $path;
+                    }
+
+                    $choice->save();
                 }
             }
-            return $quiz;
+
+            return $quiz->load('questions.choices');
         });
     }
 
-    public function updateQuiz(int $quizId, array $data){
-        return DB::transaction(function () use ($quizId, $data){
-            $quiz = Quiz::where('id', $quizId)->firstOrFail();
 
-        $quiz->update([
-            'title' => $data['title'],
-            'description' => $data['description'] ?? null,
-            'started_at' => $data['started_at'],
-            'deadline' => $data['deadline'],
-        ]);
+    public function updateQuiz(int $quizId, array $data)
+{
+    return DB::transaction(function () use ($quizId, $data) {
+        $quiz = Quiz::with('questions.choices')->findOrFail($quizId);
 
-        foreach($quiz->questions as $question){
-            $question->choices()->delete();
-            $question->delete();
+        // If subject_id was sent, associate it explicitly (avoids mass-assignment quirks)
+        if (array_key_exists('subject_id', $data)) {
+            $quiz->subject()->associate($data['subject_id']);
         }
 
-        foreach($data['questions'] as $questionData){
-            $question = QuizQuestion::create([
-                'quiz_id' => $quiz->id,
-                'question_text' => $questionData['question_text'],
-            ]);
+        // Update other meta fields if provided
+        if (array_key_exists('title', $data))       $quiz->title       = $data['title'];
+        if (array_key_exists('description', $data)) $quiz->description = $data['description'];
+        if (array_key_exists('started_at', $data))  $quiz->started_at  = $data['started_at'];
+        if (array_key_exists('deadline', $data))    $quiz->deadline    = $data['deadline'];
 
-            foreach($questionData['choices'] as $choiceData){
-                QuizQuestionChoice::create([
-                    'question_id' => $question->id,
-                    'choice_text' => $choiceData['choice_text'],
-                    'is_correct' => $choiceData['is_correct'],
-                ]);
+        $quiz->save();
+
+        // If no questions provided, keep existing Q&A
+        if (!array_key_exists('questions', $data)) {
+            return $quiz->refresh()->load('questions.choices','subject');
+        }
+
+        // Remove old images then delete rows
+        foreach ($quiz->questions as $oldQ) {
+            if (!empty($oldQ->question_image)) {
+                Storage::disk('public')->delete($oldQ->question_image);
+            }
+            foreach ($oldQ->choices as $oldC) {
+                if (!empty($oldC->choice_image)) {
+                    Storage::disk('public')->delete($oldC->choice_image);
+                }
             }
         }
-            return $quiz->fresh('questions.choices');
-        });
-    }
+        foreach ($quiz->questions as $oldQ) {
+            $oldQ->choices()->delete();
+            $oldQ->delete();
+        }
+
+        // Recreate Q&A
+        foreach ($data['questions'] as $qData) {
+            $question = new QuizQuestion([
+                'quiz_id'       => $quiz->id,
+                'question_text' => $qData['question_text'] ?? null,
+            ]);
+            if (isset($qData['question_image']) && $qData['question_image'] instanceof \Illuminate\Http\UploadedFile) {
+                $question->question_image = $qData['question_image']->store('quiz_questions','public');
+            }
+            $question->save();
+
+            foreach ($qData['choices'] as $cData) {
+                $choice = new QuizQuestionChoice([
+                    'question_id' => $question->id,
+                    'choice_text' => $cData['choice_text'] ?? null,
+                    'is_correct'  => in_array(($cData['is_correct'] ?? null), [true,'true',1,'1','on'], true),
+                ]);
+                if (isset($cData['choice_image']) && $cData['choice_image'] instanceof \Illuminate\Http\UploadedFile) {
+                    $choice->choice_image = $cData['choice_image']->store('quiz_choices','public');
+                }
+                $choice->save();
+            }
+        }
+
+       return Quiz::with('questions.choices', 'subject')->findOrFail($quiz->id);
+    });
+}
 
     public function deleteQuiz(int $quizId){
         return DB::transaction(function() use ($quizId){

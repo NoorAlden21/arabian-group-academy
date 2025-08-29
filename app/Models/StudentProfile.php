@@ -83,4 +83,8 @@ class StudentProfile extends Model
     public function quizSubmissions(){
         return $this->hasMany(QuizSubmission::class, 'student_profile_id');
     }
+
+    public function absences(){
+        return $this->hasMany(\App\Models\StudentAbsence::class, 'student_profile_id');
+    }
 }

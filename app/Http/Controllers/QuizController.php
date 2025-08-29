@@ -38,7 +38,7 @@ class QuizController extends Controller
             }
     
             return response()->json([
-                'quizzes' => QuizBasicInfoResource::collection($quizzes)
+                'quizzes' => QuizBasicInfoResource::collection($quizzes->load('subject'))
             ], 200);
         }catch (\Exception $e) {
             return response()->json([
@@ -49,17 +49,32 @@ class QuizController extends Controller
     }
 
     public function store(CreateQuizRequest $request){
-        try{
-            $quiz = $this->quizService->createQuiz($request->validated(), auth()->user()->teacherProfile->id);
+        try {
+            $data = $request->validated();
+
+            // Attach UploadedFile instances into $data (so the service can store them)
+            foreach ($data['questions'] as $qi => &$q) {
+                if ($request->hasFile("questions.$qi.question_image")) {
+                    $q['question_image'] = $request->file("questions.$qi.question_image");
+                }
+                foreach ($q['choices'] as $ci => &$c) {
+                    if ($request->hasFile("questions.$qi.choices.$ci.choice_image")) {
+                        $c['choice_image'] = $request->file("questions.$qi.choices.$ci.choice_image");
+                    }
+                }
+            }
+
+            $quiz = $this->quizService->createQuiz($data, auth()->user()->teacherProfile->id);
+
             return response()->json([
                 'message' => 'Quiz created successfully.',
-                'quiz' => new QuizFullInfoResource($quiz->load('questions.choices'))
-            ],201);
-        }catch(\Exception $e){
+                'quiz' => new QuizFullInfoResource($quiz->load('questions.choices')),
+            ], 201);
+        } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create quiz.',
                 'error' => $e->getMessage()
-            ],500);
+            ], 500);
         }
     }
 
@@ -76,17 +91,35 @@ class QuizController extends Controller
         }
     }
 
-    public function update(Quiz $quiz ,UpdateQuizRequest $request){
-        try{
-            $quiz = $this->quizService->updateQuiz($quiz->id, $request);
+    public function update(Quiz $quiz, UpdateQuizRequest $request){
+        try {
+            $data = $request->validated();
+
+            // Only merge files if questions exist in payload
+            if (isset($data['questions'])) {
+                foreach ($data['questions'] as $qi => &$q) {
+                    if ($request->hasFile("questions.$qi.question_image")) {
+                        $q['question_image'] = $request->file("questions.$qi.question_image");
+                    }
+                    foreach ($q['choices'] as $ci => &$c) {
+                        if ($request->hasFile("questions.$qi.choices.$ci.choice_image")) {
+                            $c['choice_image'] = $request->file("questions.$qi.choices.$ci.choice_image");
+                        }
+                    }
+                }
+            }
+
+            $updated = $this->quizService->updateQuiz($quiz->id, $data);
+            $updated->loadMissing('questions.choices', 'subject');
+
             return response()->json([
-                'quiz' => $quiz
-            ],200);
-        }catch(\Exception $e){
+                'quiz' => new QuizFullInfoResource($updated)
+            ], 200);
+        } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update quiz',
-                'error' => $e->getMessage()
-            ]);
+                'error'   => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -106,53 +139,60 @@ class QuizController extends Controller
     }
 
     public function assignableClassrooms(Quiz $quiz){
-        try{
+        try {
             $teacher = auth()->user()->teacherProfile;
-            $assignedClassrooms = $quiz->classrooms->pluck('id');
-            $availableClassrooms = $teacher->classrooms()->whereNotIn('classrooms.id', $assignedClassrooms)->get();    
-            
-            if ($availableClassrooms->isEmpty()) {
+
+            // classrooms this teacher teaches for THIS subject
+            $eligibleClassroomIds = $teacher->classSubjectTeachers()
+                ->where('subject_id', $quiz->subject_id)
+                ->pluck('classroom_id');
+
+            $assigned = $quiz->classrooms()->pluck('classrooms.id');
+
+            $available = Classroom::whereIn('id', $eligibleClassroomIds)
+                ->whereNotIn('id', $assigned)
+                ->get();
+
+            if ($available->isEmpty()) {
                 return response()->json([
                     'message' => 'No classrooms available for assignment.',
                     'classrooms' => []
                 ]);
             }
 
-            return response()->json([   
-                'classrooms' => ClassroomBasicResource::collection($availableClassrooms)
-            ]);
-        }catch(\Exception $e){
             return response()->json([
-                'error' => $e->getMessage()
-            ],500);
+                'classrooms' => ClassroomBasicResource::collection($available)
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
     public function assign(Quiz $quiz, Request $request){
-        try{
+        try {
             $request->validate([
                 'classroom_ids' => 'required|array',
                 'classroom_ids.*' => 'exists:classrooms,id'
             ]);
-    
+
             $teacher = auth()->user()->teacherProfile;
-    
-            //another Layer of validation
-            $validClassrooms = $teacher->classrooms()
-            ->whereIn('classrooms.id', $request->classroom_ids)
-            ->pluck('classrooms.id')
-            ->toArray();
-    
-            if(empty($validClassrooms)){
+
+            $validClassroomIds = $teacher->classSubjectTeachers()
+                ->where('subject_id', $quiz->subject_id)
+                ->whereIn('classroom_id', $request->classroom_ids)
+                ->pluck('classroom_id')
+                ->toArray();
+
+            if (empty($validClassroomIds)) {
                 return response()->json(['message' => 'No valid classrooms to assign.'], 422);
             }
 
-            $quiz->classrooms()->syncWithoutDetaching($validClassrooms);
+            $quiz->classrooms()->syncWithoutDetaching($validClassroomIds);
 
             return response()->json([
                 'message' => 'Quiz assigned successfully to classrooms.',
             ], 200);
-        }catch (\Exception $e){
+        } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to assign quiz',
                 'error' => $e->getMessage()
