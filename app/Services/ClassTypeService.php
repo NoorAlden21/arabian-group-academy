@@ -50,4 +50,13 @@ class ClassTypeService
         $classType = ClassType::findOrFail($id);
         return $classType->delete();
     }
+
+    public function getSubjectsForClassType(int $id): Collection
+    {
+        $classType = ClassType::with([
+            'subjects' => fn($q) => $q->select('subjects.id', 'subjects.name')
+        ])->findOrFail($id);
+
+        return $classType->subjects;
+    }
 }

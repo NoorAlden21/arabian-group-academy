@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateClassTypeRequest;
 use App\Http\Requests\UpdateClassTypeRequest;
 use App\Http\Resources\ClassTypeResource;
+use App\Http\Resources\SubjectResource;
 use App\Services\ClassTypeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -101,6 +102,21 @@ class ClassTypeController extends Controller
             return response()->json([
                 'message' => 'Failed to delete class type',
                 'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function subjects(int $id): JsonResponse
+    {
+        try {
+            $subjects = $this->classTypeService->getSubjectsForClassType($id);
+            return SubjectResource::collection($subjects)->response()->setStatusCode(200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Class type not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch subjects for class type',
+                'error'   => $e->getMessage()
             ], 500);
         }
     }

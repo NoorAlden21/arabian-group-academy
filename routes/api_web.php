@@ -1,10 +1,15 @@
 <?php
 
+use App\Http\Controllers\Api\Web\ExamController;
+use App\Http\Controllers\Api\Web\ExamTermController;
 use App\Http\Controllers\Api\Web\AttendanceController;
 use App\Http\Controllers\Api\Web\ScheduleController;
 use App\Http\Controllers\Api\Web\ClassroomController;
+use App\Http\Controllers\Api\Web\ClassroomStudentController;
 use App\Http\Controllers\Api\Web\ClassSubjectTeacherController;
 use App\Http\Controllers\Api\Web\ClassTypeController;
+use App\Http\Controllers\Api\Web\ExamGradesController;
+use App\Http\Controllers\Api\Web\StudentClassroomController;
 use App\Http\Controllers\Api\Web\StudentController;
 use App\Http\Controllers\Api\Web\SubjectController;
 use App\Http\Controllers\Api\Web\TeacherController;
@@ -39,6 +44,14 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
             Route::post('/restore/{id}', 'restoreStudent');
             Route::delete('/force-delete/{id}', 'forceDeleteStudent');
     });
+
+    Route::prefix('/admin/students')
+        ->middleware('role:admin')
+        ->controller(StudentClassroomController::class)
+        ->group(function () {
+            Route::get('/{student}/classrooms/candidates', 'candidates');
+            Route::post('/{student}/classrooms/assign', 'assign');
+        });
 
     Route::prefix('/admin/attendance/students')
            ->middleware('role:admin')
@@ -90,10 +103,47 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
             Route::post('{id}/assign-teachers', 'assignTeachers');
         });
 
+    Route::prefix('/admin/classrooms')
+        ->middleware('role:admin')
+        ->controller(ClassroomStudentController::class)
+        ->group(function () {
+            Route::get('/{classroom}/students/candidates', 'candidates');
+            Route::post('/{classroom}/students/assign','assign');
+        });
+
+    //ExamsTerms
+
+    Route::prefix('/admin/exam-terms')
+        ->middleware('role:admin')
+        ->controller(ExamTermController::class)
+        ->group(function(){
+            Route::get('', 'index');
+            Route::post('', 'store');
+            Route::patch('/{examTerm}', 'update');
+            Route::post('/{examTerm}/publish', 'publish');
+        });
+    Route::post('admin/exam-terms/{examTerm}/exams/bulk-upsert', [ExamController::class, 'bulkUpsert'])->middleware('role:admin');
+
+    // Exams
+    Route::prefix('/admin/exams')
+        ->middleware('role:admin')
+        ->controller(ExamController::class)
+        ->group(function(){
+            Route::get('/exams', [ExamController::class, 'index']);
+            Route::post('/exams/{exam}/publish', [ExamController::class, 'publish']);
+        });
+
+    Route::get('/admin/exams/{exam}/students', [ExamGradesController::class, 'students']);
+    Route::post('/admin/exams/{exam}/grades/bulk-upsert', [ExamGradesController::class, 'bulkUpsert']);
+    Route::post('/admin/exams/{exam}/grades/publish', [ExamGradesController::class, 'publish']);
+
+
+    //class types
     Route::middleware(['role:admin'])
         ->prefix('/admin')
         ->group(function () {
             Route::apiResource('class-types', ClassTypeController::class);
+            Route::get('class-types/{id}/subjects', [ClassTypeController::class, 'subjects']);
         });
 
     Route::middleware(['role:admin'])
