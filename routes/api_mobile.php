@@ -67,6 +67,9 @@ Route::prefix('mobile')->group(function () {
         Route::group(['prefix' => 'student', 'middleware' => 'role:student'], function () {
             Route::get('/homeworks', [HomeworkController::class, 'getStudentHomeworks']);
             Route::get('/my-schedule', [StudentController::class, 'mySchedule']);
+
+            Route::get('/exams', [StudentController::class, 'exams']);   // /api/mobile/student/exams?term_id=&status=&from=&to=&upcoming=1
+            Route::get('/grades', [StudentController::class, 'grades']); // /api/mobile/student/grades?term_id=&subject_id=
         });
     });
 });
