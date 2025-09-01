@@ -9,13 +9,34 @@ use App\Http\Resources\StudentBasicInfoResource;
 use App\Http\Resources\StudentFullInfoResource;
 use App\Http\Resources\StudentResource;
 use App\Models\Classroom;
+use App\Models\StudentProfile;
 use App\Services\ClassroomStudentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ClassroomStudentController extends Controller
 {
-    public function __construct(private ClassroomStudentService $service) {}
+    public function __construct(private ClassroomStudentService $service)
+    {
+    }
+
+    public function index(Classroom $classroom): JsonResponse
+    {
+        try {
+            $students = $this->service->studentsOfClassroom($classroom);
+
+            return response()->json([
+                'classroom_id'   => $classroom->id,
+                'classroom_name' => $classroom->name,
+                'students'       => $students,
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Failed to fetch classroom students.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
 
     public function candidates(Classroom $classroom, Request $request): JsonResponse
     {
@@ -24,7 +45,7 @@ class ClassroomStudentController extends Controller
             $data = $this->service->candidateStudentsForClassroom($classroom, $q, perPage: 20);
             return response()->json(StudentResource::collection($data), 200);
         } catch (\Throwable $e) {
-            return response()->json(['message'=>'Failed to load candidates','error'=>$e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to load candidates', 'error' => $e->getMessage()], 500);
         }
     }
 
@@ -36,7 +57,7 @@ class ClassroomStudentController extends Controller
             $result = $this->service->assignStudentsToClassroom($classroom, $ids);
             return response()->json($result, 200);
         } catch (\Throwable $e) {
-            return response()->json(['message'=>'Failed to assign students','error'=>$e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to assign students', 'error' => $e->getMessage()], 500);
         }
     }
 }

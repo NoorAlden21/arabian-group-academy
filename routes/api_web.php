@@ -43,7 +43,7 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
             Route::delete('/{id}', 'destroy');
             Route::post('/restore/{id}', 'restoreStudent');
             Route::delete('/force-delete/{id}', 'forceDeleteStudent');
-    });
+        });
 
     Route::prefix('/admin/students')
         ->middleware('role:admin')
@@ -54,19 +54,19 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
         });
 
     Route::prefix('/admin/attendance/students')
-           ->middleware('role:admin')
-           ->controller(AttendanceController::class)
-           ->group(function(){
-                Route::get('','meta');
-                Route::post('', 'storeStudentAbsences');
-    });
+        ->middleware('role:admin')
+        ->controller(AttendanceController::class)
+        ->group(function () {
+            Route::get('', 'meta');
+            Route::post('', 'storeStudentAbsences');
+        });
 
     Route::prefix('/admin/parents')
         ->middleware('role:admin')
         ->controller(ParentController::class)
         ->group(function () {
             Route::get('/{id}', 'show');
-    });
+        });
 
     //teachers
     Route::prefix('/admin/teachers')
@@ -107,8 +107,9 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
         ->middleware('role:admin')
         ->controller(ClassroomStudentController::class)
         ->group(function () {
+            Route::get('/{classroom}/students', 'index');
             Route::get('/{classroom}/students/candidates', 'candidates');
-            Route::post('/{classroom}/students/assign','assign');
+            Route::post('/{classroom}/students/assign', 'assign');
         });
 
     //ExamsTerms
@@ -116,7 +117,7 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
     Route::prefix('/admin/exam-terms')
         ->middleware('role:admin')
         ->controller(ExamTermController::class)
-        ->group(function(){
+        ->group(function () {
             Route::get('', 'index');
             Route::post('', 'store');
             Route::patch('/{examTerm}', 'update');
@@ -128,7 +129,7 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
     Route::prefix('/admin/exams')
         ->middleware('role:admin')
         ->controller(ExamController::class)
-        ->group(function(){
+        ->group(function () {
             Route::get('/exams', [ExamController::class, 'index']);
             Route::post('/exams/{exam}/publish', [ExamController::class, 'publish']);
         });
