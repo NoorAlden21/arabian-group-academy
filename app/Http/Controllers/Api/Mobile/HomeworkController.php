@@ -37,44 +37,10 @@ class HomeworkController extends Controller
         }
     }
 
-    // public function store(CreateHomeworkRequest $request): JsonResponse
-    // {
-    //     try {
-    //         $homework = $this->homeworkService->createHomework($request->user(), $request->validated());
-    //         return (new HomeworkResource($homework))->response()->setStatusCode(201);
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'message' => 'Failed to create homework.',
-    //             'error' => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
     public function store(CreateHomeworkRequest $request): JsonResponse
     {
         try {
-            // Get the authenticated teacher
-            $teacherUser = $request->user();
-
-            // Create the homework and get the result, which also gets the associated classroom
-            $homework = $this->homeworkService->createHomework($teacherUser, $request->validated());
-
-            // Get the classroom associated with the homework
-            $classSubjectTeacher = $homework->classSubjectTeacher;
-            $classroom = $classSubjectTeacher->classroom;
-
-            // Send notification to all students in that classroom
-            if ($classroom) {
-                foreach ($classroom->students as $studentProfile) {
-                    if ($studentProfile->user) {
-                        $this->deviceTokenService->sendNotification(
-                            $studentProfile->user,
-                            "واجب جديد",
-                            "تم إضافة واجب جديد في مادة {$classSubjectTeacher->subject->name}."
-                        );
-                    }
-                }
-            }
-
+            $homework = $this->homeworkService->createHomework($request->user(), $request->validated());
             return (new HomeworkResource($homework))->response()->setStatusCode(201);
         } catch (\Exception $e) {
             return response()->json([
@@ -83,6 +49,40 @@ class HomeworkController extends Controller
             ], 500);
         }
     }
+    // public function store(CreateHomeworkRequest $request): JsonResponse
+    // {
+    //     try {
+    //         // Get the authenticated teacher
+    //         $teacherUser = $request->user();
+
+    //         // Create the homework and get the result, which also gets the associated classroom
+    //         $homework = $this->homeworkService->createHomework($teacherUser, $request->validated());
+
+    //         // Get the classroom associated with the homework
+    //         $classSubjectTeacher = $homework->classSubjectTeacher;
+    //         $classroom = $classSubjectTeacher->classroom;
+
+    //         // Send notification to all students in that classroom
+    //         if ($classroom) {
+    //             foreach ($classroom->students as $studentProfile) {
+    //                 if ($studentProfile->user) {
+    //                     $this->deviceTokenService->sendNotification(
+    //                         $studentProfile->user,
+    //                         "واجب جديد",
+    //                         "تم إضافة واجب جديد في مادة {$classSubjectTeacher->subject->name}."
+    //                     );
+    //                 }
+    //             }
+    //         }
+
+    //         return (new HomeworkResource($homework))->response()->setStatusCode(201);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'message' => 'Failed to create homework.',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
     public function update(UpdateHomeworkRequest $request, int $id): JsonResponse
     {
