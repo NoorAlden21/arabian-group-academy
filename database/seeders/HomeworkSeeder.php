@@ -11,7 +11,6 @@ class HomeworkSeeder extends Seeder
 {
     public function run(): void
     {
-        Homework::truncate();
 
         $classSubjectTeachers = ClassSubjectTeacher::with(['subject', 'teacher.user'])->get();
 

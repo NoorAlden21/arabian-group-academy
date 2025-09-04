@@ -1,16 +1,22 @@
 <?php
 
 use App\Http\Controllers\Api\Mobile\AuthController;
+use App\Http\Controllers\Api\Mobile\DeviceTokenController;
 use App\Http\Controllers\Api\Mobile\ProfileController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\Api\Mobile\HomeworkController;
 use App\Http\Controllers\Api\Mobile\ParentController;
 use App\Http\Controllers\Api\Mobile\StudentController;
 use App\Http\Controllers\Api\Mobile\TeacherController;
-use App\Http\Controllers\Api\Web\ClassSubjectTeacherController;
+use App\Http\Controllers\Api\Mobile\ClassSubjectTeacherController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
+Route::post('/send-notification', [NotificationController::class, 'send']);
 Route::prefix('mobile')->group(function () {
+
+
+
 
     Route::post('login', [AuthController::class, 'login'])->middleware('throttle:6,1');
 
@@ -66,6 +72,7 @@ Route::prefix('mobile')->group(function () {
 
         Route::group(['prefix' => 'student', 'middleware' => 'role:student'], function () {
             Route::get('/homeworks', [HomeworkController::class, 'getStudentHomeworks']);
+            Route::post('/homeworks/{id}/toggle-status', [HomeworkController::class, 'toggleStatus']);
             Route::get('/my-schedule', [StudentController::class, 'mySchedule']);
         });
     });

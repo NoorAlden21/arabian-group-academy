@@ -22,8 +22,9 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone_number' => ['required','string','min:10','max:10','exists:users,phone_number'],
-            'password' => ['required','string','min:6']
+            'phone_number' => ['required', 'string', 'min:10', 'max:10', 'exists:users,phone_number'],
+            'password' => ['required', 'string', 'min:6'],
+            'fcm_token' => ['nullable', 'string'],
         ];
     }
 }
