@@ -5,12 +5,35 @@ namespace App\Services;
 use App\Models\Classroom;
 use App\Models\StudentProfile;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class ClassroomStudentService
 {
+
+    public function studentsOfClassroom(Classroom $classroom)
+    {
+        $query = StudentProfile::query()
+            ->join('users', 'users.id', '=', 'student_profiles.user_id')
+            ->whereNull('student_profiles.deleted_at')
+            ->where('student_profiles.classroom_id', $classroom->id)
+            ->orderBy('users.name', 'asc');
+
+        if (Schema::hasColumn('users', 'deleted_at')) {
+            $query->whereNull('users.deleted_at');
+        }
+
+        return $query->get([
+            'student_profiles.id as student_profile_id',
+            'student_profiles.user_id',
+            'users.name',
+            'users.phone_number',
+            'users.gender',
+        ]);
+    }
+
     public function candidateStudentsForClassroom(Classroom $classroom, ?string $q = null, int $perPage = 20): LengthAwarePaginator
     {
         return StudentProfile::query()
@@ -18,7 +41,7 @@ class ClassroomStudentService
             ->whereNull('classroom_id')
             ->where('level', $classroom->level)
             ->when($q, function (Builder $b) use ($q) {
-                $b->whereHas('user', fn(Builder $u) => $u->where('name','like',"%{$q}%"));
+                $b->whereHas('user', fn (Builder $u) => $u->where('name', 'like', "%{$q}%"));
             })
             ->with([
                 'user:id,name,phone_number,gender,birth_date',
@@ -33,7 +56,7 @@ class ClassroomStudentService
         return Classroom::query()
             ->whereNull('deleted_at')
             ->where('level', $student->level)
-            ->when($q, fn(Builder $b) => $b->where('name','like',"%{$q}%"))
+            ->when($q, fn (Builder $b) => $b->where('name', 'like', "%{$q}%"))
             ->orderBy('name')
             ->paginate($perPage);
     }

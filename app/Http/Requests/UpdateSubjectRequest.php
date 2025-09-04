@@ -14,9 +14,18 @@ class UpdateSubjectRequest extends FormRequest
 
     public function rules(): array
     {
+        // يدعم route('subject') (model binding) أو route('id') (رقمي)
+        $subjectId = $this->route('subject')?->id ?? $this->route('id');
+
         return [
-            'name'             => ['sometimes', 'required', 'string', 'max:255', Rule::unique('subjects', 'name')->ignore($this->route('id'))],
-            'class_type_ids'   => ['sometimes', 'nullable','array'], 
+            'name' => [
+                'sometimes', 'required', 'string', 'max:255',
+                Rule::unique('subjects', 'name')
+                    ->ignore($subjectId)            // تجاهل السجل الحالي
+                // ->whereNull('deleted_at')     // فعّلها إذا عندك soft deletes
+            ],
+
+            'class_type_ids'   => ['sometimes', 'nullable', 'array'],
             'class_type_ids.*' => ['integer', 'exists:class_types,id'],
         ];
     }
