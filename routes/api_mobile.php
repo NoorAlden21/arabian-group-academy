@@ -10,9 +10,10 @@ use App\Http\Controllers\Api\Mobile\StudentController;
 use App\Http\Controllers\Api\Mobile\TeacherController;
 use App\Http\Controllers\Api\Mobile\ClassSubjectTeacherController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\TestNotificationController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/send-notification', [NotificationController::class, 'send']);
+Route::get('/test-notification', [TestNotificationController::class, 'send']);
 Route::prefix('mobile')->group(function () {
 
 
@@ -23,6 +24,7 @@ Route::prefix('mobile')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::post('logout-all', [AuthController::class, 'logoutAll']);
+        Route::get('/notifications', [NotificationController::class, 'index']);
 
         Route::get('profile', [ProfileController::class, 'show']);
 

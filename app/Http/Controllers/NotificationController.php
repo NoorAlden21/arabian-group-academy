@@ -2,11 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Kreait\Laravel\Firebase\Facades\Firebase;
 
 class NotificationController extends Controller
 {
+
+    public function index(): JsonResponse
+    {
+        $notifications = auth()->user()->notifications()->latest()->get();
+
+        return response()->json([
+            'notifications' => $notifications
+        ]);
+    }
+
     public function send(Request $request)
     {
         $messaging = Firebase::messaging();

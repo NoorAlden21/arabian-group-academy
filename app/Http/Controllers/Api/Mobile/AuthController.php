@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Mobile;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Resources\ChildBasicResource;
+use App\Models\DeviceToken;
 use App\Services\AuthService;
 use App\Services\DeviceTokenService;
 use Illuminate\Http\JsonResponse;
@@ -37,12 +38,15 @@ class AuthController extends Controller
 
             $user = $result['user'];
 
-            // Save FCM token if available
-            // if ($fcmToken) {
-            //     $this->deviceTokenService->storeToken($user, $fcmToken);
-            // }
+            if ($fcmToken) {
+                DeviceToken::updateOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'token'   => $fcmToken,
+                    ]
+                );
+            }
 
-            // children count (lightweight info only)
             $childrenCount = 0;
             if ($user->hasRole('parent')) {
                 $childrenCount = optional($user->parentProfile?->children)->count() ?? 0;

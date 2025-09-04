@@ -7,6 +7,7 @@ use App\Http\Requests\CreateHomeworkRequest;
 use App\Http\Requests\UpdateHomeworkRequest;
 use App\Http\Resources\HomeworkResource;
 use App\Services\DeviceTokenService;
+use App\Services\FirebaseNotificationService;
 use App\Services\HomeworkService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,12 +17,12 @@ use Illuminate\Support\Facades\Auth;
 class HomeworkController extends Controller
 {
     protected HomeworkService $homeworkService;
-    protected DeviceTokenService $deviceTokenService;
+    protected FirebaseNotificationService $fcm;
 
-    public function __construct(HomeworkService $homeworkService, DeviceTokenService $deviceTokenService)
+    public function __construct(HomeworkService $homeworkService, FirebaseNotificationService $fcm)
     {
         $this->homeworkService = $homeworkService;
-        $this->deviceTokenService = $deviceTokenService;
+        $this->fcm = $fcm;
     }
 
     public function index(Request $request): JsonResponse
@@ -49,40 +50,42 @@ class HomeworkController extends Controller
             ], 500);
         }
     }
+
     // public function store(CreateHomeworkRequest $request): JsonResponse
     // {
     //     try {
-    //         // Get the authenticated teacher
-    //         $teacherUser = $request->user();
+    //         $homework = $this->homeworkService->createHomework(
+    //             $request->user(),
+    //             $request->validated()
+    //         );
 
-    //         // Create the homework and get the result, which also gets the associated classroom
-    //         $homework = $this->homeworkService->createHomework($teacherUser, $request->validated());
-
-    //         // Get the classroom associated with the homework
+    //         // ✅ جلب الصف المرتبط بالمادة/الأستاذ
     //         $classSubjectTeacher = $homework->classSubjectTeacher;
     //         $classroom = $classSubjectTeacher->classroom;
 
-    //         // Send notification to all students in that classroom
-    //         if ($classroom) {
-    //             foreach ($classroom->students as $studentProfile) {
-    //                 if ($studentProfile->user) {
-    //                     $this->deviceTokenService->sendNotification(
-    //                         $studentProfile->user,
-    //                         "واجب جديد",
-    //                         "تم إضافة واجب جديد في مادة {$classSubjectTeacher->subject->name}."
-    //                     );
-    //                 }
-    //             }
+    //         // ✅ جلب الطلاب المسجلين في الصف
+    //         $students = $classroom->students ?? [];
+
+    //         foreach ($students as $student) {
+    //             $this->fcm->sendToUser(
+    //                 $student->user_id,
+    //                 'واجب جديد',
+    //                 "تم إضافة واجب جديد بعنوان: {$homework->title}",
+    //                 ['homework_id' => $homework->id]
+    //             );
     //         }
 
-    //         return (new HomeworkResource($homework))->response()->setStatusCode(201);
+    //         return (new HomeworkResource($homework))
+    //             ->response()
+    //             ->setStatusCode(201);
     //     } catch (\Exception $e) {
     //         return response()->json([
     //             'message' => 'Failed to create homework.',
-    //             'error' => $e->getMessage()
+    //             'error'   => $e->getMessage()
     //         ], 500);
     //     }
     // }
+
 
     public function update(UpdateHomeworkRequest $request, int $id): JsonResponse
     {
