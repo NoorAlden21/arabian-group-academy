@@ -22,25 +22,25 @@ class QuizController extends Controller
         $this->quizService = $quizService;
     }
 
-    public function index(){
-        try{
+    public function index()
+    {
+        try {
             $user = auth()->user();
-            if($user->hasRole('teacher')){
+            if ($user->hasRole('teacher')) {
                 $quizzes = $this->quizService->getQuizzesForTeacher($user->teacherProfile->id);
-            }
-            else if($user->hasRole('student')){
+            } else if ($user->hasRole('student')) {
                 $quizzes = $this->quizService->getQuizzesForStudent($user->studentProfile->classroom_id);
-            }//needs to be tested
-            else{
+            } //needs to be tested
+            else {
                 return response()->json([
                     'message' => 'Unauthorized role.'
                 ], 403);
             }
-    
+
             return response()->json([
                 'quizzes' => QuizBasicInfoResource::collection($quizzes->load('subject'))
             ], 200);
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch quizzes.',
                 'error' => $e->getMessage()
@@ -48,7 +48,8 @@ class QuizController extends Controller
         }
     }
 
-    public function store(CreateQuizRequest $request){
+    public function store(CreateQuizRequest $request)
+    {
         try {
             $data = $request->validated();
 
@@ -78,12 +79,14 @@ class QuizController extends Controller
         }
     }
 
-    public function show(Quiz $quiz){
-        try{
+    public function show(Quiz $quiz)
+    {
+        try {
+            $quiz->load('subject', 'questions.choices');
             return response()->json([
                 'quiz' => new QuizFullInfoResource($quiz),
             ], 200);
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch quiz.',
                 'error' => $e->getMessage()
@@ -91,7 +94,8 @@ class QuizController extends Controller
         }
     }
 
-    public function update(Quiz $quiz, UpdateQuizRequest $request){
+    public function update(Quiz $quiz, UpdateQuizRequest $request)
+    {
         try {
             $data = $request->validated();
 
@@ -123,7 +127,8 @@ class QuizController extends Controller
         }
     }
 
-    public function destroy(Quiz $quiz){
+    public function destroy(Quiz $quiz)
+    {
         try {
             $this->quizService->deleteQuiz($quiz->id);
 
@@ -131,14 +136,15 @@ class QuizController extends Controller
                 'message' => 'Quiz deleted successfully.'
             ], 200);
         } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Failed to delete quiz',
-            'error' => $e->getMessage()
-        ], 500);
-        }//needs to be tested
+            return response()->json([
+                'message' => 'Failed to delete quiz',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
-    public function assignableClassrooms(Quiz $quiz){
+    public function assignableClassrooms(Quiz $quiz)
+    {
         try {
             $teacher = auth()->user()->teacherProfile;
 
@@ -168,7 +174,8 @@ class QuizController extends Controller
         }
     }
 
-    public function assign(Quiz $quiz, Request $request){
+    public function assign(Quiz $quiz, Request $request)
+    {
         try {
             $request->validate([
                 'classroom_ids' => 'required|array',
@@ -200,29 +207,40 @@ class QuizController extends Controller
         }
     }
 
-    public function publishQuiz(){}
+    public function publish(Quiz $quiz)
+    {
+        try {
+            $quiz = $this->quizService->publishQuiz($quiz->id);
+            return response()->json(['quiz' => $quiz]);
+        } catch (\Throwable $e) {
+            report($e);
+            return response()->json(['message' => 'Failed to publish exam term'], 500);
+        }
+    }
 
     //student part
 
-    public function showForStudent(Quiz $quiz){
-        try{
+    public function showForStudent(Quiz $quiz)
+    {
+        try {
             return response()->json([
                 'quiz' => new QuizForStudentResource($quiz),
             ], 200);
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch quiz.',
                 'error' => $e->getMessage()
             ]);
         }
-    }//needs to be tested
+    } //needs to be tested
 
-    public function studentQuizzes(Request $request){
-        try{
+    public function studentQuizzes(Request $request)
+    {
+        try {
             $student = auth()->user()->studentProfile;
             $filter = $request->query('filter');
             $quizzes = $this->quizService->getStudentQuizzes($student, $filter);
-             return response()->json([
+            return response()->json([
                 'quizzes' => QuizBasicInfoResource::collection($quizzes)
             ]);
         } catch (\Exception $e) {
@@ -233,15 +251,16 @@ class QuizController extends Controller
         }
     }
 
-    public function submitQuiz(Quiz $quiz, Request $request){
-         try {
-        $studentId = auth()->user()->studentProfile->id;
+    public function submitQuiz(Quiz $quiz, Request $request)
+    {
+        try {
+            $studentId = auth()->user()->studentProfile->id;
 
-        $submission = $this->quizService->submitQuiz($request->validated(), $studentId);
+            $submission = $this->quizService->submitQuiz($request->validated(), $studentId);
 
-        return response()->json([
-            'message' => 'Quiz submitted successfully.',
-        ], 201);
+            return response()->json([
+                'message' => 'Quiz submitted successfully.',
+            ], 201);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to submit quiz.',

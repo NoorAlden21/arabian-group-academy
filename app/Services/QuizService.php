@@ -15,9 +15,11 @@ use Illuminate\Support\Facades\Storage;
 use PDO;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 
-class QuizService{
-    public function getQuizzesForTeacher(int $teacherProfileId){
-        return Quiz::with('classrooms')->where('teacher_profile_id', $teacherProfileId)->latest()->get();   
+class QuizService
+{
+    public function getQuizzesForTeacher(int $teacherProfileId)
+    {
+        return Quiz::with('classrooms')->where('teacher_profile_id', $teacherProfileId)->latest()->get();
     }
 
     // public function getQuizzesForStudent(int $classroomId){
@@ -28,11 +30,12 @@ class QuizService{
     //         });
     // }
 
-    public function createQuiz(array $data, int $teacherProfileId){
+    public function createQuiz(array $data, int $teacherProfileId)
+    {
         return DB::transaction(function () use ($data, $teacherProfileId) {
             $quiz = Quiz::create([
                 'teacher_profile_id' => $teacherProfileId,
-                'subject_id'         => $data['subject_id'],     
+                'subject_id'         => $data['subject_id'],
                 'title'              => $data['title'],
                 'description'        => $data['description'] ?? null,
                 'started_at'         => $data['started_at'] ?? null,
@@ -76,104 +79,114 @@ class QuizService{
 
 
     public function updateQuiz(int $quizId, array $data)
-{
-    return DB::transaction(function () use ($quizId, $data) {
-        $quiz = Quiz::with('questions.choices')->findOrFail($quizId);
+    {
+        return DB::transaction(function () use ($quizId, $data) {
+            $quiz = Quiz::with('questions.choices')->findOrFail($quizId);
 
-        // If subject_id was sent, associate it explicitly (avoids mass-assignment quirks)
-        if (array_key_exists('subject_id', $data)) {
-            $quiz->subject()->associate($data['subject_id']);
-        }
-
-        // Update other meta fields if provided
-        if (array_key_exists('title', $data))       $quiz->title       = $data['title'];
-        if (array_key_exists('description', $data)) $quiz->description = $data['description'];
-        if (array_key_exists('started_at', $data))  $quiz->started_at  = $data['started_at'];
-        if (array_key_exists('deadline', $data))    $quiz->deadline    = $data['deadline'];
-
-        $quiz->save();
-
-        // If no questions provided, keep existing Q&A
-        if (!array_key_exists('questions', $data)) {
-            return $quiz->refresh()->load('questions.choices','subject');
-        }
-
-        // Remove old images then delete rows
-        foreach ($quiz->questions as $oldQ) {
-            if (!empty($oldQ->question_image)) {
-                Storage::disk('public')->delete($oldQ->question_image);
+            // If subject_id was sent, associate it explicitly (avoids mass-assignment quirks)
+            if (array_key_exists('subject_id', $data)) {
+                $quiz->subject()->associate($data['subject_id']);
             }
-            foreach ($oldQ->choices as $oldC) {
-                if (!empty($oldC->choice_image)) {
-                    Storage::disk('public')->delete($oldC->choice_image);
+
+            // Update other meta fields if provided
+            if (array_key_exists('title', $data))       $quiz->title       = $data['title'];
+            if (array_key_exists('description', $data)) $quiz->description = $data['description'];
+            if (array_key_exists('started_at', $data))  $quiz->started_at  = $data['started_at'];
+            if (array_key_exists('deadline', $data))    $quiz->deadline    = $data['deadline'];
+
+            $quiz->save();
+
+            // If no questions provided, keep existing Q&A
+            if (!array_key_exists('questions', $data)) {
+                return $quiz->refresh()->load('questions.choices', 'subject');
+            }
+
+            // Remove old images then delete rows
+            foreach ($quiz->questions as $oldQ) {
+                if (!empty($oldQ->question_image)) {
+                    Storage::disk('public')->delete($oldQ->question_image);
+                }
+                foreach ($oldQ->choices as $oldC) {
+                    if (!empty($oldC->choice_image)) {
+                        Storage::disk('public')->delete($oldC->choice_image);
+                    }
                 }
             }
-        }
-        foreach ($quiz->questions as $oldQ) {
-            $oldQ->choices()->delete();
-            $oldQ->delete();
-        }
-
-        // Recreate Q&A
-        foreach ($data['questions'] as $qData) {
-            $question = new QuizQuestion([
-                'quiz_id'       => $quiz->id,
-                'question_text' => $qData['question_text'] ?? null,
-            ]);
-            if (isset($qData['question_image']) && $qData['question_image'] instanceof \Illuminate\Http\UploadedFile) {
-                $question->question_image = $qData['question_image']->store('quiz_questions','public');
+            foreach ($quiz->questions as $oldQ) {
+                $oldQ->choices()->delete();
+                $oldQ->delete();
             }
-            $question->save();
 
-            foreach ($qData['choices'] as $cData) {
-                $choice = new QuizQuestionChoice([
-                    'question_id' => $question->id,
-                    'choice_text' => $cData['choice_text'] ?? null,
-                    'is_correct'  => in_array(($cData['is_correct'] ?? null), [true,'true',1,'1','on'], true),
+            // Recreate Q&A
+            foreach ($data['questions'] as $qData) {
+                $question = new QuizQuestion([
+                    'quiz_id'       => $quiz->id,
+                    'question_text' => $qData['question_text'] ?? null,
                 ]);
-                if (isset($cData['choice_image']) && $cData['choice_image'] instanceof \Illuminate\Http\UploadedFile) {
-                    $choice->choice_image = $cData['choice_image']->store('quiz_choices','public');
+                if (isset($qData['question_image']) && $qData['question_image'] instanceof \Illuminate\Http\UploadedFile) {
+                    $question->question_image = $qData['question_image']->store('quiz_questions', 'public');
                 }
-                $choice->save();
+                $question->save();
+
+                foreach ($qData['choices'] as $cData) {
+                    $choice = new QuizQuestionChoice([
+                        'question_id' => $question->id,
+                        'choice_text' => $cData['choice_text'] ?? null,
+                        'is_correct'  => in_array(($cData['is_correct'] ?? null), [true, 'true', 1, '1', 'on'], true),
+                    ]);
+                    if (isset($cData['choice_image']) && $cData['choice_image'] instanceof \Illuminate\Http\UploadedFile) {
+                        $choice->choice_image = $cData['choice_image']->store('quiz_choices', 'public');
+                    }
+                    $choice->save();
+                }
             }
-        }
 
-       return Quiz::with('questions.choices', 'subject')->findOrFail($quiz->id);
-    });
-}
+            return Quiz::with('questions.choices', 'subject')->findOrFail($quiz->id);
+        });
+    }
 
-    public function deleteQuiz(int $quizId){
-        return DB::transaction(function() use ($quizId){
+    public function deleteQuiz(int $quizId)
+    {
+        return DB::transaction(function () use ($quizId) {
             $quiz = Quiz::findOrFail($quizId);
-            foreach($quiz->questions as $question){
-                $question->choices()->delte();
+            foreach ($quiz->questions as $question) {
+                $question->choices()->delete();
                 $question->delete();
             }
 
             $quiz->delete();
-            
+
             return true;
         });
+    }
+
+    public function publishQuiz(int $quizId)
+    {
+        $quiz = Quiz::findOrFail($quizId);
+        $quiz->update(['is_published' => true]);
+        return $quiz->fresh();
     }
 
 
     //student part
 
-    public function getStudentQuizzes(StudentProfile $student, ?string $filter = null){
+    public function getStudentQuizzes(StudentProfile $student, ?string $filter = null)
+    {
         $submittedQuizIds = $student->quizSubmissions()->pluck('quiz_id')->toArray();
 
-        if($filter === 'all'){
+        if ($filter === 'all') {
             return $student->quizzes()->get();
         }
 
         if ($filter === 'submitted') {
             return $student->quizzes()->whereIn('quizzes.id', $submittedQuizIds)->get();
         }
-        
+
         return $student->quizzes()->whereNotIn('quizzes.id', $submittedQuizIds)->get();
     }
 
-    public function submitQuiz(array $data, int $studentProfile){
+    public function submitQuiz(array $data, int $studentProfile)
+    {
         return DB::transaction(function () use ($data, $studentProfile) {
             $quiz = Quiz::with('questions.choices')->findOrFail($data['quiz_id']);
 
@@ -210,5 +223,4 @@ class QuizService{
             return $submission;
         });
     }
-
 }

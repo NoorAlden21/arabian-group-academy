@@ -40,6 +40,7 @@ Route::prefix('mobile')->group(function () {
                 Route::delete('/{quiz}', 'destroy')->middleware(['is.owner:quiz,teacher_profile_id']);
                 Route::get('/{quiz}/assign', 'assignableClassrooms')->middleware(['is.owner:quiz,teacher_profile_id']);
                 Route::post('/{quiz}/assign', 'assign')->middleware(['is.owner:quiz,teacher_profile_id']);
+                Route::post('/{quiz}/publish', 'publish')->middleware(['is.owner:quiz,teacher_profile_id']);
 
                 //student routes
                 Route::prefix('/student')->middleware('role:student')->group(function () {
