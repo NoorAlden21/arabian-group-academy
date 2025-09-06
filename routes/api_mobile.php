@@ -17,14 +17,15 @@ Route::get('/test-notification', [TestNotificationController::class, 'send']);
 Route::prefix('mobile')->group(function () {
 
 
-
-
     Route::post('login', [AuthController::class, 'login'])->middleware('throttle:6,1');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::post('logout-all', [AuthController::class, 'logoutAll']);
         Route::get('/notifications', [NotificationController::class, 'index']);
+        // Route::delete('/devices/{token}', [DeviceTokenController::class, 'destroy']);
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
 
         Route::get('profile', [ProfileController::class, 'show']);
 
