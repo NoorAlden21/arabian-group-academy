@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Mobile\ParentController;
 use App\Http\Controllers\Api\Mobile\StudentController;
 use App\Http\Controllers\Api\Mobile\TeacherController;
 use App\Http\Controllers\Api\Mobile\ClassSubjectTeacherController;
+use App\Http\Controllers\Api\Mobile\ComplaintController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TestNotificationController;
 use Illuminate\Support\Facades\Route;
@@ -41,6 +42,7 @@ Route::prefix('mobile')->group(function () {
                 Route::delete('/{quiz}', 'destroy')->middleware(['is.owner:quiz,teacher_profile_id']);
                 Route::get('/{quiz}/assign', 'assignableClassrooms')->middleware(['is.owner:quiz,teacher_profile_id']);
                 Route::post('/{quiz}/assign', 'assign')->middleware(['is.owner:quiz,teacher_profile_id']);
+                Route::post('/{quiz}/publish', 'publish')->middleware(['is.owner:quiz,teacher_profile_id']);
 
                 //student routes
                 Route::prefix('/student')->middleware('role:student')->group(function () {
@@ -80,6 +82,14 @@ Route::prefix('mobile')->group(function () {
 
             Route::get('/exams', [StudentController::class, 'exams']);   // /api/mobile/student/exams?term_id=&status=&from=&to=&upcoming=1
             Route::get('/grades', [StudentController::class, 'grades']); // /api/mobile/student/grades?term_id=&subject_id=
+        });
+
+
+        //complaints
+        Route::prefix('complaints')->controller(ComplaintController::class)->group(function () {
+            Route::get('topics', 'topics');                         // قائمة المواضيع
+            Route::get('my', 'my')->middleware('role:student|teacher'); // شكاوي المُشتكي
+            Route::post('/', 'store')->middleware('role:student|teacher'); // إنشاء شكوى
         });
     });
 });

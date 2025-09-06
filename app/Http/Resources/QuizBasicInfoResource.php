@@ -26,6 +26,7 @@ class QuizBasicInfoResource extends JsonResource
             'description' => $this->description,
             'started_at' => $this->started_at,
             'deadline' => $this->deadline,
+            'is_published' => (bool) $this->is_published,
             'created_at' => $this->created_at,
         ];
     }

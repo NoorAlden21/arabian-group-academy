@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Web\ClassroomController;
 use App\Http\Controllers\Api\Web\ClassroomStudentController;
 use App\Http\Controllers\Api\Web\ClassSubjectTeacherController;
 use App\Http\Controllers\Api\Web\ClassTypeController;
+use App\Http\Controllers\Api\Web\ComplaintController;
 use App\Http\Controllers\Api\Web\ExamGradesController;
 use App\Http\Controllers\Api\Web\StudentClassroomController;
 use App\Http\Controllers\Api\Web\StudentController;
@@ -145,6 +146,17 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
         ->group(function () {
             Route::apiResource('class-types', ClassTypeController::class);
             Route::get('class-types/{id}/subjects', [ClassTypeController::class, 'subjects']);
+        });
+
+    //complaints
+    Route::prefix('admin/complaints')
+        ->controller(ComplaintController::class)
+        ->middleware('role:admin')
+        ->group(function () {
+            Route::get('/', 'index');
+            Route::get('{complaint}', 'show');
+            Route::patch('{complaint}/status', 'updateStatus');
+            Route::delete('{complaint}', 'destroy');
         });
 
     Route::middleware(['role:admin'])
