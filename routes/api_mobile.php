@@ -23,11 +23,13 @@ Route::prefix('mobile')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::post('logout-all', [AuthController::class, 'logoutAll']);
-        Route::get('/notifications', [NotificationController::class, 'index']);
-        // Route::delete('/devices/{token}', [DeviceTokenController::class, 'destroy']);
-        Route::get('/notifications', [NotificationController::class, 'index']);
-        Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
 
+        Route::prefix('notifications')->controller(NotificationController::class)->group(function () {
+            Route::get('/', 'All');
+            Route::post('/{id}/read', 'markAsRead');
+        });
+
+        Route::post('send-test-notification', [NotificationController::class, 'send']);
         Route::get('profile', [ProfileController::class, 'show']);
 
 

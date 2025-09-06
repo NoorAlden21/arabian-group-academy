@@ -38,53 +38,51 @@ class HomeworkController extends Controller
         }
     }
 
-    public function store(CreateHomeworkRequest $request): JsonResponse
-    {
-        try {
-            $homework = $this->homeworkService->createHomework($request->user(), $request->validated());
-            return (new HomeworkResource($homework))->response()->setStatusCode(201);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to create homework.',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
     // public function store(CreateHomeworkRequest $request): JsonResponse
     // {
     //     try {
-    //         $homework = $this->homeworkService->createHomework(
-    //             $request->user(),
-    //             $request->validated()
-    //         );
-
-    //         // ✅ جلب الصف المرتبط بالمادة/الأستاذ
-    //         $classSubjectTeacher = $homework->classSubjectTeacher;
-    //         $classroom = $classSubjectTeacher->classroom;
-
-    //         // ✅ جلب الطلاب المسجلين في الصف
-    //         $students = $classroom->students ?? [];
-
-    //         foreach ($students as $student) {
-    //             $this->fcm->sendToUser(
-    //                 $student->user_id,
-    //                 'واجب جديد',
-    //                 "تم إضافة واجب جديد بعنوان: {$homework->title}",
-    //                 ['homework_id' => $homework->id]
-    //             );
-    //         }
-
-    //         return (new HomeworkResource($homework))
-    //             ->response()
-    //             ->setStatusCode(201);
+    //         $homework = $this->homeworkService->createHomework($request->user(), $request->validated());
+    //         return (new HomeworkResource($homework))->response()->setStatusCode(201);
     //     } catch (\Exception $e) {
     //         return response()->json([
     //             'message' => 'Failed to create homework.',
-    //             'error'   => $e->getMessage()
+    //             'error' => $e->getMessage()
     //         ], 500);
     //     }
     // }
+
+    public function store(CreateHomeworkRequest $request): JsonResponse
+    {
+        try {
+            $homework = $this->homeworkService->createHomework(
+                $request->user(),
+                $request->validated()
+            );
+
+            $classSubjectTeacher = $homework->classSubjectTeacher;
+            $classroom = $classSubjectTeacher->classroom;
+
+            $students = $classroom->students ?? [];
+
+            foreach ($students as $student) {
+                $this->fcm->sendToUser(
+                    $student->user_id,
+                    'واجب جديد',
+                    "تم إضافة واجب جديد بعنوان: {$homework->title}",
+                    ['homework_id' => $homework->id]
+                );
+            }
+
+            return (new HomeworkResource($homework))
+                ->response()
+                ->setStatusCode(201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to create homework.',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
 
 
     public function update(UpdateHomeworkRequest $request, int $id): JsonResponse
