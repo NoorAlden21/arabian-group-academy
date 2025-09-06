@@ -22,11 +22,9 @@ class SubmitQuizRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'quiz_id' => 'required|exists:quizzes,id',
             'answers' => 'required|array|min:1',
             'answers.*.question_id' => 'required|exists:quiz_questions,id',
             'answers.*.selected_choice_id' => 'required|exists:quiz_question_choices,id',
         ];
-
     }
 }

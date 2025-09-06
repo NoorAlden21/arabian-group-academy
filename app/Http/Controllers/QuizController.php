@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateQuizRequest;
+use App\Http\Requests\SubmitQuizRequest;
 use App\Http\Requests\UpdateQuizRequest;
 use App\Http\Resources\ClassroomBasicResource;
 use App\Http\Resources\QuizBasicInfoResource;
@@ -10,6 +11,7 @@ use App\Http\Resources\QuizForStudentResource;
 use App\Http\Resources\QuizFullInfoResource;
 use App\Models\Classroom;
 use App\Models\Quiz;
+use App\Models\QuizSubmission;
 use App\Services\QuizService;
 use Illuminate\Container\Attributes\Auth;
 use Illuminate\Http\Request;
@@ -223,6 +225,12 @@ class QuizController extends Controller
     public function showForStudent(Quiz $quiz)
     {
         try {
+            $quiz->load([
+                'subject:id,name',
+                // يكفي تحمل questions.choices بدون select مخصص
+                'questions.choices',
+            ]);
+
             return response()->json([
                 'quiz' => new QuizForStudentResource($quiz),
             ], 200);
@@ -232,7 +240,7 @@ class QuizController extends Controller
                 'error' => $e->getMessage()
             ]);
         }
-    } //needs to be tested
+    }
 
     public function studentQuizzes(Request $request)
     {
@@ -251,20 +259,34 @@ class QuizController extends Controller
         }
     }
 
-    public function submitQuiz(Quiz $quiz, Request $request)
+    public function submitQuiz(Quiz $quiz, SubmitQuizRequest $request)
     {
         try {
-            $studentId = auth()->user()->studentProfile->id;
+            $studentProfileId = auth()->user()->studentProfile->id;
 
-            $submission = $this->quizService->submitQuiz($request->validated(), $studentId);
+            // حواجز الوصول الشائعة
+            if (!$quiz->is_published) return response()->json(['message' => 'الاختبار غير منشور.'], 403);
+            // if ($quiz->started_at && now()->lt($quiz->started_at)) return response()->json(['message' => 'الاختبار لم يبدأ بعد.'], 403);
+            // if ($quiz->deadline && now()->gt($quiz->deadline)) return response()->json(['message' => 'انتهت مهلة الاختبار.'], 403);
+
+            $alreadySubmitted = QuizSubmission::where('quiz_id', $quiz->id)
+                ->where('student_profile_id', $studentProfileId)->exists();
+            if ($alreadySubmitted) return response()->json(['message' => 'تم التسليم مسبقًا.'], 409);
+
+            $data = $request->validated();
+            $data['quiz_id'] = $quiz->id; // ← من المسار
+
+            $submission = $this->quizService->submitQuiz($data, $studentProfileId);
 
             return response()->json([
                 'message' => 'Quiz submitted successfully.',
+                'submission_id' => $submission->id,
+                'score' => $submission->score,
             ], 201);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return response()->json([
                 'message' => 'Failed to submit quiz.',
-                'error' => $e->getMessage()
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
