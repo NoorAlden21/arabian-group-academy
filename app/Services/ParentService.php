@@ -153,9 +153,8 @@ class ParentService
             throw new ModelNotFoundException('Child not found or not authorized.');
         }
 
-        return $this->homeworkService->getStudentHomeworksByClassroomId($child->classroom_id);
+        return $this->homeworkService->getHomeworksByClassroomId($child->classroom_id);
     }
-
 
     /**
      * Get the grades for a specific child.

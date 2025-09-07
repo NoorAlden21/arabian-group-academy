@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Services;
+
 use App\Models\Homework;
 use App\Models\HomeworkStudentStatus;
 use App\Models\User;
@@ -135,5 +136,16 @@ class HomeworkService
         }
 
         return $homework->delete();
+    }
+    public function getHomeworksByClassroomId(int $classroomId): Collection
+    {
+        $homeworks = Homework::query()
+            ->whereHas('classSubjectTeacher.classroom', function ($q) use ($classroomId) {
+                $q->where('id', $classroomId);
+            })
+            ->with('classSubjectTeacher.subject')
+            ->get();
+
+        return $homeworks;
     }
 }
