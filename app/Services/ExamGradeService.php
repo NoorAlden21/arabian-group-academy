@@ -10,25 +10,42 @@ use Illuminate\Validation\ValidationException;
 class ExamGradeService
 {
     // جلب طلاب الـ ClassType (اختياري تصفية بـ class_id)
-    public function studentsForExam(int $examId, ?int $classId = null)
+    public function studentsForExam(int $examId, ?int $classId = null, bool $onlyMissing = true)
     {
         $exam = Exam::with('classType')->findOrFail($examId);
 
-        // الصفوف التابعة لنفس class_type
+        // classrooms that belong to this exam’s class_type
         $classes = DB::table('classrooms')
             ->where('class_type_id', $exam->class_type_id)
-            ->when($classId, fn($q) => $q->where('id', $classId))
+            ->when($classId, fn ($q) => $q->where('id', $classId))
             ->pluck('id');
 
         if ($classId && !$classes->contains($classId)) {
-            throw ValidationException::withMessages(['class_id' => ['Class does not belong to the exam class type.']]);
+            throw ValidationException::withMessages([
+                'class_id' => ['Class does not belong to the exam class type.'],
+            ]);
         }
 
-        // طلاب هذه الصفوف
-        return DB::table('student_profiles as sp')
+        $q = DB::table('student_profiles as sp')
             ->join('users as u', 'u.id', '=', 'sp.user_id')
-            ->whereIn('sp.classroom_id', $classes)
-            ->select('sp.id as student_profile_id', 'u.name', 'u.phone_number')
+            // join to grades for THIS exam
+            ->leftJoin('grades as g', function ($join) use ($examId) {
+                $join->on('g.student_profile_id', '=', 'sp.id')
+                    ->where('g.gradable_type', Exam::class)
+                    ->where('g.gradable_id', $examId);
+            })
+            ->whereIn('sp.classroom_id', $classes);
+
+        if ($onlyMissing) {
+            // only students who DON'T have a grade record yet
+            $q->whereNull('g.id');
+        }
+
+        return $q->select(
+            'sp.id as student_profile_id',
+            'u.name',
+            'u.phone_number'
+        )
             ->orderBy('u.name')
             ->get();
     }
@@ -57,7 +74,6 @@ class ExamGradeService
                         'score'      => $score,
                         'max_score'  => $exam->max_score,
                         'remark'     => $r['remark'] ?? null,
-                        'graded_at'  => now(),
                     ]
                 );
 

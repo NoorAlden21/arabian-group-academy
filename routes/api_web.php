@@ -115,7 +115,7 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
 
     //ExamsTerms
     Route::prefix('/admin/exam-terms')
-        ->middleware('role:admin')
+        ->middleware(['auth:sanctum', 'role:admin'])
         ->controller(ExamTermController::class)
         ->group(function () {
             Route::get('', 'index');
@@ -127,7 +127,7 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
 
     // Exams
     Route::prefix('/admin/exams')
-        ->middleware('role:admin')
+        ->middleware(['auth:sanctum', 'role:admin'])
         ->controller(ExamController::class)
         ->group(function () {
             Route::get('', [ExamController::class, 'index']);
@@ -138,7 +138,8 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
     Route::get('/admin/exams/{exam}/students', [ExamGradesController::class, 'students']);
     Route::post('/admin/exams/{exam}/grades/bulk-upsert', [ExamGradesController::class, 'bulkUpsert']);
     Route::post('/admin/exams/{exam}/grades/publish', [ExamGradesController::class, 'publish']);
-
+    Route::get('/admin/exams/{exam}/classrooms', [ExamGradesController::class, 'classrooms'])
+        ->middleware('role:admin');
 
     //class types
     Route::middleware(['role:admin'])

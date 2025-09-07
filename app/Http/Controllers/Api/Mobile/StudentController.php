@@ -14,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class StudentController extends Controller
 {
@@ -83,7 +84,6 @@ class StudentController extends Controller
         }
     }
 
-    // GET /api/me/grades
     public function grades(Request $request): JsonResponse
     {
         try {
@@ -95,9 +95,15 @@ class StudentController extends Controller
             return response()->json([
                 'grades' => MyGradeResource::collection($grades)
             ]);
+        } catch (ValidationException $ve) {
+            return response()->json(['errors' => $ve->errors()], 422);
         } catch (\Throwable $e) {
             report($e);
-            return response()->json(['message' => 'Failed to fetch my grades'], 500);
+            return response()->json([
+                'message' => 'Failed to fetch my grades',
+                // إرجاع الرسالة الحقيقية فقط لو APP_DEBUG=true
+                'error'   => config('app.debug') ? $e->getMessage() : 'Server Error',
+            ], 500);
         }
     }
 }

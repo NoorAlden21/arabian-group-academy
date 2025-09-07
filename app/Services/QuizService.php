@@ -172,17 +172,38 @@ class QuizService
 
     public function getStudentQuizzes(StudentProfile $student, ?string $filter = null)
     {
+        $now = now();
+
         $submittedQuizIds = $student->quizSubmissions()->pluck('quiz_id')->toArray();
 
-        if ($filter === 'all') {
-            return $student->quizzes()->get();
-        }
+        $base = $student->quizzes()->with('subject');
 
-        if ($filter === 'submitted') {
-            return $student->quizzes()->whereIn('quizzes.id', $submittedQuizIds)->get();
-        }
+        switch ($filter) {
+            case 'submitted':
+                return (clone $base)
+                    ->whereIn('quizzes.id', $submittedQuizIds)
+                    ->get();
 
-        return $student->quizzes()->whereNotIn('quizzes.id', $submittedQuizIds)->get();
+            case 'all':
+                return (clone $base)
+                    ->where('is_published', true)
+                    ->get();
+
+            case 'unsubmitted':
+            default:
+                return (clone $base)
+                    ->where('is_published', true)
+                    ->whereNotIn('quizzes.id', $submittedQuizIds)
+                    ->where(function ($q) use ($now) {
+                        $q->whereNull('started_at')
+                            ->orWhere('started_at', '<=', $now);
+                    })
+                    ->where(function ($q) use ($now) {
+                        $q->whereNull('deadline')
+                            ->orWhere('deadline', '>=', $now);
+                    })
+                    ->get();
+        }
     }
 
     public function submitQuiz(array $data, int $studentProfile)

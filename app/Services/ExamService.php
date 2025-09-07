@@ -40,10 +40,10 @@ class ExamService
                     ->where('id', '!=', ($item['id'] ?? 0))
                     ->where(function ($q) use ($scheduledAt, $endAt) {
                         $q->whereBetween('scheduled_at', [$scheduledAt, $endAt])
-                          ->orWhere(function ($q2) use ($scheduledAt, $endAt) {
-                              $q2->where('scheduled_at', '<', $scheduledAt)
-                                 ->whereRaw('DATE_ADD(scheduled_at, INTERVAL duration_minutes MINUTE) > ?', [$scheduledAt]);
-                          });
+                            ->orWhere(function ($q2) use ($scheduledAt, $endAt) {
+                                $q2->where('scheduled_at', '<', $scheduledAt)
+                                    ->whereRaw('DATE_ADD(scheduled_at, INTERVAL duration_minutes MINUTE) > ?', [$scheduledAt]);
+                            });
                     })
                     ->exists();
 
@@ -56,7 +56,7 @@ class ExamService
                 $exam = Exam::updateOrCreate(
                     [
                         'exam_term_id' => $term->id,
-                        'class_type_id'=> $classTypeId,
+                        'class_type_id' => $classTypeId,
                         'subject_id'   => $item['subject_id'],
                     ],
                     [
@@ -67,7 +67,7 @@ class ExamService
                     ]
                 );
 
-                $result[] = $exam->fresh(['subject','classType','term']);
+                $result[] = $exam->fresh(['subject', 'classType', 'term']);
             }
 
             return $result;
@@ -86,8 +86,25 @@ class ExamService
 
     public function publishTerm(int $termId): ExamTerm
     {
-        $term = ExamTerm::findOrFail($termId);
-        $term->update(['status' => 'published']);
-        return $term->fresh();
+        return DB::transaction(function () use ($termId) {
+            $term = ExamTerm::lockForUpdate()->findOrFail($termId);
+
+            // ننشر التيرم نفسه (استخدم published_at لو عندك العمود)
+            $term->update([
+                'status'       => 'published',
+            ]);
+
+            // ننشر جميع الامتحانات التابعة للتيرم
+            // إذا عندك حالات أخرى (cancelled, archived) وتريد استثنائها، عدّل الشرط
+            Exam::where('exam_term_id', $term->id)
+                ->where(fn ($q) => $q->whereNull('status')->orWhere('status', '!=', 'published'))
+                ->update([
+                    'status'       => 'published',
+                    'published_at' => now(),
+                ]);
+
+            // رجّع التيرم مرفق معه الامتحانات بعد التحديث (اختياري)
+            return $term->fresh();
+        });
     }
 }

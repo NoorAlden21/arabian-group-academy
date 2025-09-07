@@ -17,12 +17,12 @@ use Illuminate\Support\Facades\Auth;
 class HomeworkController extends Controller
 {
     protected HomeworkService $homeworkService;
-    protected FirebaseNotificationService $fcm;
+    // protected FirebaseNotificationService $fcm;
 
-    public function __construct(HomeworkService $homeworkService, FirebaseNotificationService $fcm)
+    public function __construct(HomeworkService $homeworkService)
     {
         $this->homeworkService = $homeworkService;
-        $this->fcm = $fcm;
+        // $this->fcm = $fcm;
     }
 
     public function index(Request $request): JsonResponse
@@ -64,14 +64,14 @@ class HomeworkController extends Controller
 
             $students = $classroom->students ?? [];
 
-            foreach ($students as $student) {
-                $this->fcm->sendToUser(
-                    $student->user_id,
-                    'واجب جديد',
-                    "تم إضافة واجب جديد بعنوان: {$homework->title}",
-                    ['homework_id' => $homework->id]
-                );
-            }
+            // foreach ($students as $student) {
+            //     $this->fcm->sendToUser(
+            //         $student->user_id,
+            //         'واجب جديد',
+            //         "تم إضافة واجب جديد بعنوان: {$homework->title}",
+            //         ['homework_id' => $homework->id]
+            //     );
+            // }
 
             return (new HomeworkResource($homework))
                 ->response()
@@ -135,7 +135,7 @@ class HomeworkController extends Controller
                 $status = $request->get('status');
                 if (in_array($status, ['completed', 'pending'])) {
                     $isCompleted = $status === 'completed';
-                    $homeworks = $homeworks->filter(fn($hw) => $hw->is_completed === $isCompleted);
+                    $homeworks = $homeworks->filter(fn ($hw) => $hw->is_completed === $isCompleted);
                 }
             }
 
