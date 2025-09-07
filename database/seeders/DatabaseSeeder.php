@@ -33,7 +33,9 @@ class DatabaseSeeder extends Seeder
             ScheduleSeeder::class,
             ParentSeeder::class,
             StudentSeeder::class,
-            HomeworkSeeder::class
+            HomeworkSeeder::class,
+            ExamTermSeeder::class,
+            ExamSeeder::class,
         ]);
     }
 }
