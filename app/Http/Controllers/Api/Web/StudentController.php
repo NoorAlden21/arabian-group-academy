@@ -4,15 +4,17 @@ namespace App\Http\Controllers\Api\Web;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateStudentRequest;
+use App\Http\Requests\ImportStudentsRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Http\Resources\StudentBasicInfoResource;
 use App\Http\Resources\StudentFullInfoResource;
+use App\Imports\StudentsImport;
 use App\Models\User;
 use App\Services\StudentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-
+use Maatwebsite\Excel\Facades\Excel;
 
 class StudentController extends Controller
 {
@@ -166,6 +168,39 @@ class StudentController extends Controller
             return response()->json([
                 'message' => 'Failed to search students',
                 'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function import(ImportStudentsRequest $request)
+    {
+        try {
+            $file = $request->file('file');
+            $dryRun = (bool)$request->boolean('dry_run');
+
+            $import = new StudentsImport($this->studentService, $dryRun);
+            Excel::import($import, $file);
+
+            $failures = [];
+            foreach ($import->failures() as $failure) {
+                $failures[] = [
+                    'row' => $failure->row(),
+                    'attribute' => $failure->attribute(),
+                    'errors' => $failure->errors(),
+                    'values' => $failure->values(),
+                ];
+            }
+            return response()->json([
+                'message'   => $dryRun ? 'Dry run completed.' : 'Import completed.',
+                'processed' => $import->processed,
+                'created'   => $import->created,
+                'skipped'   => $import->skipped,
+                'failures'  => $failures,
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Import failed.',
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }

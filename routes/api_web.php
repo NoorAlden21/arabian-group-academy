@@ -36,6 +36,7 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
         ->middleware('role:admin')
         ->controller(StudentController::class)
         ->group(function () {
+            Route::post('/import', 'import');
             Route::get('/', 'index');
             Route::post('/', 'store');
             Route::get('/search', 'searchStudents');
