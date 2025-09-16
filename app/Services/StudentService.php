@@ -16,15 +16,28 @@ class StudentService
     public function createStudent(array $data)
     {
         return DB::transaction(function () use ($data) {
-            $parent = User::create([
-                'name' => $data['parent_name'],
-                'phone_number' => $data['parent_phone_number'],
-                'password' => Hash::make($data['parent_password']),
-            ]);
-            $parent->parentProfile()->create([
-                'occupation' => $data['parent_occupation']
-            ]);
-            $parent->assignRole('parent');
+            $parent = User::Where('phone_number', $data['parent_phone_number'])->first();
+            if (!$parent) {
+                $parent = User::create([
+                    'name' => $data['parent_name'],
+                    'phone_number' => $data['parent_phone_number'],
+                    'password' => Hash::make($data['parent_password']),
+                ]);
+                $parent->parentProfile()->create([
+                    'occupation' => $data['parent_occupation']
+                ]);
+                $parent->assignRole('parent');
+            } else {
+                if (!$parent->parentProfile)
+                    $parent->parentProfile->create([
+                        'occupation' => $data['parent_occupation'] ?? null
+                    ]);
+
+                if (!$parent->hasRole('parent')) {
+                    $parent->assignRole('parent');
+                }
+            }
+
 
             $student = User::create([
                 'name' => $data['name'],
@@ -46,7 +59,8 @@ class StudentService
         });
     }
 
-    public function getAllStudents(int $perPage = 15) {
+    public function getAllStudents(int $perPage = 15)
+    {
         return User::role('student')
             ->select('id', 'name', 'phone_number')
             ->with([
@@ -58,26 +72,27 @@ class StudentService
             ->paginate($perPage);
     }
 
-    public function getStudentById(int $id): ?User{
-    return User::role('student')
-        ->select('id', 'name', 'phone_number','gender','birth_date')
-        ->with([
-            'studentProfile:id,user_id,parent_id,classroom_id,level,enrollment_year,gpa,previous_status',
+    public function getStudentById(int $id): ?User
+    {
+        return User::role('student')
+            ->select('id', 'name', 'phone_number', 'gender', 'birth_date')
+            ->with([
+                'studentProfile:id,user_id,parent_id,classroom_id,level,enrollment_year,gpa,previous_status',
 
-            // ParentProfile + User
-            'studentProfile.parentProfile' => function ($q) {
-                $q->withTrashed()->select('id','user_id','occupation');
-            },
-            'studentProfile.parentProfile.user' => function ($q) {
-                $q->withTrashed()->select('id','name','phone_number');
-            },
+                // ParentProfile + User
+                'studentProfile.parentProfile' => function ($q) {
+                    $q->withTrashed()->select('id', 'user_id', 'occupation');
+                },
+                'studentProfile.parentProfile.user' => function ($q) {
+                    $q->withTrashed()->select('id', 'name', 'phone_number');
+                },
 
-            // Classroom + ClassType
-            'studentProfile.classroom:id,name,year,class_type_id',
-            'studentProfile.classroom.classType:id,name',
-        ])
-        ->find($id);
-}
+                // Classroom + ClassType
+                'studentProfile.classroom:id,name,year,class_type_id',
+                'studentProfile.classroom.classType:id,name',
+            ])
+            ->find($id);
+    }
 
     public function updateStudent($id, array $data)
     {
@@ -172,11 +187,11 @@ class StudentService
         }
 
         if (!empty($filters['level'])) {
-            $query->whereHas('studentProfile', fn($q) => $q->where('level', $filters['level']));
+            $query->whereHas('studentProfile', fn ($q) => $q->where('level', $filters['level']));
         }
 
         if (!empty($filters['enrollment_year'])) {
-            $query->whereHas('studentProfile', fn($q) => $q->where('enrollment_year', $filters['enrollment_year']));
+            $query->whereHas('studentProfile', fn ($q) => $q->where('enrollment_year', $filters['enrollment_year']));
         }
 
         return $query->paginate(10);
