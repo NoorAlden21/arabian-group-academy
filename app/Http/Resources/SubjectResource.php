@@ -11,12 +11,12 @@ class SubjectResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->name,
+            'name' => $this->display_name,
             'class_types' => $this->whenLoaded('classTypes', function () {
                 return $this->classTypes->map(function ($ct) {
                     return [
                         'id'   => $ct->id,
-                        'name' => $ct->name,
+                        'name' => $ct->display_name,
                     ];
                 })->values();
             }, []),

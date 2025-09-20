@@ -24,7 +24,7 @@ class MyExamResource extends JsonResource
 
             'subject' => $this->when($this->relationLoaded('subject'), fn () => [
                 'id'   => $this->subject?->id,
-                'name' => $this->subject?->name,
+                'name' => $this->subject?->display_name,
             ]),
 
             'term' => $this->when($this->relationLoaded('term'), fn () => [

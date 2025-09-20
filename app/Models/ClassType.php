@@ -4,11 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\HasDisplayName;
 
 class ClassType extends Model
 {
-    use HasFactory;
-    protected $fillable = ['name'];
+    use HasFactory, HasDisplayName;
+    protected $fillable = ['name', 'name_ar'];
+    protected $appends  = ['display_name']; // keeps "name" intact
 
     public function classTypeSubjects()
     {
@@ -18,7 +20,7 @@ class ClassType extends Model
     public function subjects()
     {
         return $this->belongsToMany(Subject::class, 'class_type_subjects')
-                    ->withTimestamps();
+            ->withTimestamps();
     }
 
     public function classrooms()
@@ -26,7 +28,8 @@ class ClassType extends Model
         return $this->hasMany(Classroom::class);
     }
 
-    public function teachers(){
+    public function teachers()
+    {
         return $this->hasManyThrough(
             TeacherProfile::class,                  // Final model you want
             TeacherClassTypeSubject::class,         // Intermediate (pivot) model

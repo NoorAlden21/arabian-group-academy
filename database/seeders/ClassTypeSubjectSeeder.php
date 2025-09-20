@@ -3,22 +3,23 @@
 namespace Database\Seeders;
 
 use App\Models\ClassType;
-use App\Models\ClassTypeSubject;
 use App\Models\Subject;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-
-use function PHPSTORM_META\map;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ClassTypeSubjectSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $subjects = Subject::all()->keyBy('name');
-        $types = ClassType::all()->keyBy('name');
+        // slug(name) => id
+        $subjects = Subject::select('id', 'name')
+            ->get()
+            ->mapWithKeys(fn ($s) => [Str::slug($s->name) => $s->id]);
+
+        $classTypes = ClassType::select('id', 'name')
+            ->get()
+            ->mapWithKeys(fn ($ct) => [Str::slug($ct->name) => $ct->id]);
 
         $mapping = [
             '9th Grade' => [
@@ -32,13 +33,36 @@ class ClassTypeSubjectSeeder extends Seeder
             ]
         ];
 
-        foreach($mapping as $type => $subjectList){
-            foreach($subjectList as $subjectName){
-                ClassTypeSubject::create([
-                    'class_type_id' => $types[$type]->id,
-                    'subject_id' => $subjects[$subjectName]->id
-                ]);
+        $aliases = [
+            'math' => 'mathematics', // map short to canonical
+        ];
+
+        $rows = [];
+        $now  = now();
+
+        foreach ($mapping as $typeName => $subjectList) {
+            $ctSlug = Str::slug($typeName);
+            $ctId   = $classTypes[$ctSlug] ?? null;
+            if (!$ctId) continue;
+
+            foreach ($subjectList as $subjectName) {
+                $subSlug = Str::slug($subjectName);
+                $subSlug = $aliases[$subSlug] ?? $subSlug;
+
+                $subId = $subjects[$subSlug] ?? null;
+                if (!$subId) continue;
+
+                $rows[] = [
+                    'class_type_id' => $ctId,
+                    'subject_id'    => $subId,
+                    'created_at'    => $now,
+                    'updated_at'    => $now,
+                ];
             }
+        }
+
+        if (!empty($rows)) {
+            DB::table('class_type_subjects')->insert($rows);
         }
     }
 }
