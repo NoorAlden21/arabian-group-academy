@@ -33,7 +33,7 @@ class ClassroomController extends Controller
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to fetch classrooms',
+                'message' => __('messages.classrooms.index.failed'),
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -45,12 +45,12 @@ class ClassroomController extends Controller
             $classroom = $this->classroomService->createClassroom($request->validated());
             $classroom->load(['classType']);
             return response()->json([
-                'message' => 'Classroom created successfully',
+                'message' => __('messages.classrooms.create.success'),
                 'classroom' => new ClassroomFullResource($classroom)
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to create classroom',
+                'message' => __('messages.classrooms.create.failed'),
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -63,7 +63,7 @@ class ClassroomController extends Controller
 
             if (!$classroom) {
                 return response()->json([
-                    'message' => 'Classroom not found.'
+                    'message' => __('messages.classrooms.show.not_found')
                 ], 404);
             }
             return response()->json([
@@ -76,7 +76,7 @@ class ClassroomController extends Controller
             ], 404);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to fetch classroom details',
+                'message' => __('messages.classrooms.show.failed'),
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -87,17 +87,17 @@ class ClassroomController extends Controller
         try {
             $classroom = $this->classroomService->updateClassroom($id, $request->validated());
             return response()->json([
-                'message' => 'Classroom updated successfully',
+                'message' => __('messages.classrooms.update.success'),
                 'classroom' => new ClassroomFullResource($classroom)
             ], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json([
-                'message' => 'Classroom not found.',
+                'message' => __('messages.classrooms.show.not_found'),
                 'error' => $e->getMessage()
             ], 404);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to update classroom',
+                'message' => __('messages.classrooms.update.failed'),
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -108,16 +108,16 @@ class ClassroomController extends Controller
         try {
             $this->classroomService->deleteClassroom($id);
             return response()->json([
-                'message' => 'Classroom deleted successfully'
+                'message' => __('messages.classrooms.delete.success')
             ], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json([
-                'message' => 'Classroom not found.',
+                'message' => __('messages.classrooms.delete.not_found'),
                 'error' => $e->getMessage()
             ], 404);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to delete classroom',
+                'message' => __('messages.classrooms.delete.failed'),
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -128,12 +128,12 @@ class ClassroomController extends Controller
         try {
             $classroom = $this->classroomService->restoreClassroom($id);
             return response()->json([
-                'message' => 'Classroom restored successfully',
+                'message' => __('messages.classrooms.restore.success'),
                 'classroom' => new ClassroomFullResource($classroom)
             ], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json([
-                'message' => 'Deleted classroom not found.',
+                'message' => __('messages.classrooms.restore.not_found'),
                 'error' => $e->getMessage()
             ], 404);
         } catch (\Exception $e) {
@@ -181,7 +181,7 @@ class ClassroomController extends Controller
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to search classrooms',
+                'message' => __('messages.classrooms.search.failed'),
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -203,51 +203,50 @@ class ClassroomController extends Controller
         }
     }
 
-    public function fetchTeachers($id){
-        try{
+    public function fetchTeachers($id)
+    {
+        try {
             $data = $this->classroomService->getEligibleTeachers($id);
-             return response()->json([
-                'message' => 'Eligible teachers fetched successfully.',
+            return response()->json([
+                'message' => __('messages.classrooms.fetch_teachers.success'),
                 'data' => $data
             ], 200);
-        } 
-        catch (ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             return response()->json([
                 'message' => 'Classroom not found.',
                 'error' => $e->getMessage()
             ], 404);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to fetch teachers.',
+                'message' => __('messages.classrooms.fetch_teachers.failed'),
                 'error' => $e->getMessage()
             ], 500);
         }
     }
 
-    public function assignTeachers(AssignTeachersRequest $request,$id){
+    public function assignTeachers(AssignTeachersRequest $request, $id)
+    {
         try {
-        $classroom = Classroom::findOrFail($id);
+            $classroom = Classroom::findOrFail($id);
 
-        ClassSubjectTeacher::where('classroom_id', $classroom->id)->delete();
+            ClassSubjectTeacher::where('classroom_id', $classroom->id)->delete();
 
-        foreach ($request->assignments as $assignment) {
-            ClassSubjectTeacher::create([
-                'classroom_id' => $classroom->id,
-                'subject_id' => $assignment['subject_id'],
-                'teacher_profile_id' => $assignment['teacher_profile_id'],
-            ]);
-        }
+            foreach ($request->assignments as $assignment) {
+                ClassSubjectTeacher::create([
+                    'classroom_id' => $classroom->id,
+                    'subject_id' => $assignment['subject_id'],
+                    'teacher_profile_id' => $assignment['teacher_profile_id'],
+                ]);
+            }
 
-        return response()->json([
-            'message' => 'Teachers assigned successfully.'
-        ], 200);
-
-        }catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to assign teachers.',
+                'message' => __('messages.classrooms.assign_teachers.success')
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => __('messages.classrooms.assign_teachers.failed'),
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
 }
-

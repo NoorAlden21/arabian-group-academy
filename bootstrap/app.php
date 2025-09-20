@@ -19,8 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->use([
             \Illuminate\Http\Middleware\HandleCors::class,
+            \App\Http\Middleware\SetLocale::class,
         ]);
-        
+
         $middleware->alias([
             'role' => RoleMiddleware::class,
             'is.owner' => IsOwner::class,
