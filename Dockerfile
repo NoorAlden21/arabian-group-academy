@@ -1,20 +1,26 @@
-# --- Stage 1: Composer dependencies ---
+# --- Stage 1: Composer dependencies (no PHP extensions available here) ---
 FROM composer:2 AS vendor
 WORKDIR /app
+
+# Copy only the files Composer needs first (better cache)
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-interaction --prefer-dist --no-progress
-# Copy the rest so classmap can be optimized if needed
+
+# Install without dev and ignore platform reqs (pgsql/gd) in THIS stage only
+RUN composer install --no-dev --no-interaction --prefer-dist --no-progress --no-scripts --ignore-platform-reqs
+
+# Now copy the whole source and re-run install to pick up classmaps if needed
 COPY . .
-RUN composer install --no-dev --no-interaction --prefer-dist --no-progress \
- && php artisan package:discover --ansi || true
+RUN composer install --no-dev --no-interaction --prefer-dist --no-progress --ignore-platform-reqs
 
 # --- Stage 2: App image with Apache + PHP ---
 FROM php:8.2-apache
 
-# System deps (zip, pgsql)
+# System deps: PostgreSQL headers, zip, image libs for GD, git
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq-dev zip unzip git \
- && docker-php-ext-install pdo_pgsql pgsql \
+    libpq-dev libzip-dev zip unzip git \
+    libfreetype6-dev libjpeg62-turbo-dev libpng-dev \
+ && docker-php-ext-configure gd --with-freetype --with-jpeg \
+ && docker-php-ext-install pdo_pgsql pgsql gd zip \
  && a2enmod rewrite \
  && rm -rf /var/lib/apt/lists/*
 
@@ -30,15 +36,15 @@ COPY . .
 # Copy vendor from builder
 COPY --from=vendor /app/vendor ./vendor
 
-# Permissions for cache/storage
+# Permissions
 RUN chown -R www-data:www-data storage bootstrap/cache \
  && chmod -R 775 storage bootstrap/cache
 
-# Optimize (safe if APP_KEY exists; otherwise it’ll still run)
+# Light optimize (cache will be rebuilt at runtime too)
 RUN php artisan config:clear || true \
  && php artisan route:clear || true
 
-# Entrypoint: run quick setup then start Apache
+# Entrypoint: prepare app then start Apache
 COPY scripts/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
