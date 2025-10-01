@@ -33,7 +33,7 @@ Route::middleware(['api', 'auth:sanctum'])->group(function () {
 
     //Students
     Route::prefix('/admin/students')
-        //->middleware('role:admin')
+        ->middleware('role:admin')
         ->controller(StudentController::class)
         ->group(function () {
             Route::post('/import', 'import');
