@@ -48,5 +48,9 @@ RUN php artisan config:clear || true \
 COPY scripts/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+RUN chown -R www-data:www-data storage bootstrap/cache \
+ && chmod -R 775 storage bootstrap/cache
+
+
 EXPOSE 80
 CMD ["/entrypoint.sh"]
