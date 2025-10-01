@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -14,18 +15,14 @@ return new class extends Migration
         Schema::create('complaints', function (Blueprint $table) {
             $table->id();
 
-            // المُشتكي: طالب/معلّم عبر بروفايل
-            $table->nullableMorphs('complainantable'); // complainantable_type, complainantable_id
+            $table->nullableMorphs('complainantable');
+            $table->nullableMorphs('targetable');
 
-            // المُشتكى عليه: طالب/معلّم عبر بروفايل
-            $table->nullableMorphs('targetable');      // targetable_type, targetable_id
             $table->string('topic', 100)->index();
             $table->text('description');
-            $table->enum('status', ['pending', 'in_review', 'resolved', 'rejected'])
-                ->default('pending')
-                ->index();
 
-            // the admin who handled it
+            $table->string('status', 12)->default('pending')->index(); // بدل enum
+
             $table->foreignId('handled_by_user_id')->nullable()
                 ->constrained('users')->nullOnDelete();
             $table->timestamp('handled_at')->nullable();
@@ -33,6 +30,12 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
+
+        if (Schema::getConnection()->getDriverName() === 'pgsql') {
+            DB::statement("ALTER TABLE complaints
+                ADD CONSTRAINT complaints_status_check
+                CHECK (status IN ('pending','in_review','resolved','rejected'))");
+        }
     }
 
     /**

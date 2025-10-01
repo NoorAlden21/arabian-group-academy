@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -14,10 +15,8 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            //$table->string('email')->unique();
-            //$table->timestamp('email_verified_at')->nullable();
-            $table->string('phone_number',10);
-            $table->enum('gender',['male','female'])->nullable();
+            $table->string('phone_number', 10);
+            $table->string('gender', 10)->nullable(); // بدل enum
             $table->string('mother_name')->nullable();
             $table->date('birth_date')->nullable();
             $table->string('password');
@@ -25,6 +24,12 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
+
+        if (Schema::getConnection()->getDriverName() === 'pgsql') {
+            DB::statement("ALTER TABLE users
+                ADD CONSTRAINT users_gender_check
+                CHECK (gender IS NULL OR gender IN ('male','female'))");
+        }
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
